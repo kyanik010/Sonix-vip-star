@@ -1846,9 +1846,9 @@
           '<option value="' + String(server.id).replace(/[&<>"']/g, '') + '">' +
           String(server.name || 'سيرفر').replace(/[&<>"]/g, '') + '</option>'
         ).join('');
-        const selected = payload.servers.find(server => server.id === current) || payload.servers[0];
+        const selected = payload.servers.find(server => server.server_url === current) || payload.servers[0];
         if (selected) selector.value = selected.id;
-        selector.dataset.serverMap = JSON.stringify(payload.servers);
+        selector.dataset.serverMap = 'names-only';
         selector.onchange = function () {
           const chosen = payload.servers.find(server => server.id === selector.value);
           selector.dataset.selectedServerUrl = chosen ? '' : '';
