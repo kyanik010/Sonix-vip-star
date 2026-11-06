@@ -1940,51 +1940,50 @@
     // Central SONIX CONTROL settings and message delivery.
     window.onSonixControlSync = function (payload) {
       if (!payload || payload.status !== 'active') return;
-      if (Array.isArray(payload.servers) && payload.servers.length) {
-        const loginButton = document.getElementById('login-submit');
-        if (loginButton) loginButton.disabled = false;
-        ['login-server', 'iptv-server-url'].forEach(serverId => {
-          const serverInput = document.getElementById(serverId);
-          if (!serverInput) return;
-          let selector = serverInput;
-          if (serverInput.tagName !== 'SELECT') {
-            selector = document.createElement('select');
-            selector.id = serverId;
-            selector.className = serverInput.className;
-            selector.style.cssText = serverInput.style.cssText;
-            selector.setAttribute('aria-label', 'اختر السيرفر');
-            serverInput.replaceWith(selector);
-          }
-          const current = selector.value || (serverId === 'iptv-server-url'
-            ? (document.getElementById('login-server')?.value || '') : '');
-          selector.innerHTML = payload.servers.map(server =>
-            '<option value="' + String(server.server_url || '').replace(/[&<>"']/g, '') + '">' +
-            String(server.name || 'سيرفر').replace(/[&<>"]/g, '') + '</option>'
-          ).join('');
-          const selected = payload.servers.find(server => server.server_url === current) || payload.servers[0];
-          if (selected) selector.value = selected.server_url || '';
+      const serverLists = ['login-server', 'iptv-server-url'];
+      const availableServers = Array.isArray(payload.servers) ? payload.servers : [];
+      serverLists.forEach(serverId => {
+        let selector = document.getElementById(serverId);
+        if (!selector) return;
+        if (selector.tagName !== 'SELECT') {
+          const replacement = document.createElement('select');
+          replacement.id = serverId;
+          replacement.className = selector.className;
+          replacement.style.cssText = selector.style.cssText;
+          replacement.setAttribute('aria-label', 'اختار السيرفر');
+          selector.replaceWith(replacement);
+          selector = replacement;
+        }
+        selector.innerHTML = '';
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'اختار السيرفر';
+        placeholder.selected = true;
+        selector.appendChild(placeholder);
+        availableServers.forEach(server => {
+          if (!server || !server.server_url) return;
+          const option = document.createElement('option');
+          option.value = String(server.server_url);
+          option.textContent = String(server.name || 'سيرفر');
+          selector.appendChild(option);
         });
+        selector.value = '';
+        selector.disabled = availableServers.length === 0;
+      });
+      const loginServer = document.getElementById('login-server');
+      const loginButton = document.getElementById('login-submit');
+      if (loginButton) loginButton.disabled = !loginServer || !loginServer.value;
+      if (loginServer && !loginServer.dataset.sonixChangeBound) {
+        loginServer.addEventListener('change', () => {
+          if (loginButton) loginButton.disabled = !loginServer.value;
+          if (loginServer.value) setLoginMessage('');
+        });
+        loginServer.dataset.sonixChangeBound = '1';
+      }
+      if (availableServers.length) {
+        setLoginMessage('');
       } else {
-        let serverInput = document.getElementById('login-server');
-        if (serverInput && serverInput.tagName === 'SELECT') {
-          const replacement = document.createElement('input');
-          replacement.id = 'login-server';
-          replacement.type = 'text';
-          replacement.className = serverInput.className;
-          replacement.readOnly = true;
-          replacement.autocomplete = 'off';
-          replacement.placeholder = 'لا يوجد سيرفر مخصص لهذا الجهاز';
-          serverInput.replaceWith(replacement);
-          serverInput = replacement;
-        }
-        if (serverInput) {
-          serverInput.value = '';
-          serverInput.readOnly = true;
-          serverInput.placeholder = 'لا يوجد سيرفر مخصص لهذا الجهاز';
-        }
-        const loginButton = document.getElementById('login-submit');
-        if (loginButton) loginButton.disabled = true;
-        setLoginMessage('لم يتم تخصيص سيرفر لهذا الجهاز من لوحة التحكم.');
+        setLoginMessage('لا يوجد سيرفر مخصص لهذا الجهاز حاليًا. أغلق التطبيق وافتحه بعد تخصيص السيرفر من لوحة التحكم.');
       }
       applySonixRemoteTheme(payload.theme);
       (payload.messages || []).forEach(message => {
