@@ -248,6 +248,67 @@ class XtreamBridge(context: Context) {
         }
     }
 
+    fun hasSavedCredentials(): Boolean = vault.read() != null
+
+    /**
+     * Refresh only catalogs already stored on this device. The worker reads only
+     * the small JSON header to decide whether each section has reached 24 hours,
+     * then atomically replaces its cache after the provider response is validated.
+     */
+    fun refreshCachedCatalogsInBackground() {
+        val credentials = vault.read() ?: return
+        val sections = listOf(
+            Triple("live", "get_live_categories", "get_live_streams"),
+            Triple("movies", "get_vod_categories", "get_vod_streams"),
+            Triple("series", "get_series_categories", "get_series")
+        )
+        val now = System.currentTimeMillis()
+        var hadFailure = false
+
+        for ((section, categoriesAction, itemsAction) in sections) {
+            val cachedFile = sectionCacheFile(credentials.server, credentials.username, section)
+            if (!cachedFile.isFile || cachedFile.length() <= 0L) continue
+            val savedAt = readCachedSectionSavedAt(cachedFile)
+            if (savedAt > 0L && now - savedAt < 86_400_000L) continue
+
+            try {
+                val categoriesBody = request(
+                    credentials.server, credentials.username, credentials.password,
+                    "player_api.php", categoriesAction
+                )
+                val itemsBody = request(
+                    credentials.server, credentials.username, credentials.password,
+                    "player_api.php", itemsAction
+                )
+                validateCatalogSection(section, categoriesBody, itemsBody)
+                val refreshedAt = System.currentTimeMillis()
+                val payload = "{\"success\":true,\"version\":2,\"section\":${JSONObject.quote(section)}," +
+                    "\"server\":${JSONObject.quote(credentials.server)},\"username\":${JSONObject.quote(credentials.username)}," +
+                    "\"savedAt\":$refreshedAt,\"categories\":$categoriesBody,\"items\":$itemsBody}"
+                persistSectionCache(credentials.server, credentials.username, section, payload)
+            } catch (error: Exception) {
+                hadFailure = true
+                android.util.Log.w("SONIX", "Background catalog refresh failed for $section; old cache retained", error)
+            }
+        }
+
+        if (hadFailure) throw IllegalStateException("تعذر تحديث قسم أو أكثر؛ ستتم إعادة المحاولة لاحقاً")
+    }
+
+    private fun readCachedSectionSavedAt(file: File): Long {
+        return try {
+            val prefix = file.inputStream().use { input ->
+                val bytes = ByteArray(4096)
+                val count = input.read(bytes)
+                if (count > 0) String(bytes, 0, count, Charsets.UTF_8) else ""
+            }
+            Regex("\"savedAt\"\\s*:\\s*(\\d+)").find(prefix)
+                ?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0L
+        } catch (_: Exception) {
+            0L
+        }
+    }
+
     @JavascriptInterface
     fun seriesInfo(seriesId: String): String {
         return requestSaved("get_series_info", "series_id" to seriesId)
