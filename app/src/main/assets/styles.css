@@ -367,6 +367,7 @@
     }
     .home-whatsapp-bar {
       display: flex;
+      direction: ltr;
       align-items: center;
       justify-content: center;
       gap: 10px;
