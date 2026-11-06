@@ -1874,6 +1874,10 @@
             }
           }
         });
+        if (typeof palette.background === 'string' && /^#[0-9a-fA-F]{6}$/.test(palette.background) &&
+            window.SonixControlBridge && window.SonixControlBridge.setBackgroundColor) {
+          window.SonixControlBridge.setBackgroundColor(palette.background);
+        }
         try { localStorage.setItem('sonix_remote_theme', JSON.stringify(payload.theme)); } catch (_) {}
       }
       (payload.messages || []).forEach(message => {
