@@ -1965,8 +1965,19 @@
           if (selected) selector.value = selected.server_url || '';
         });
       } else {
-        const serverInput = document.getElementById('login-server');
-        if (serverInput && serverInput.tagName !== 'SELECT') {
+        let serverInput = document.getElementById('login-server');
+        if (serverInput && serverInput.tagName === 'SELECT') {
+          const replacement = document.createElement('input');
+          replacement.id = 'login-server';
+          replacement.type = 'text';
+          replacement.className = serverInput.className;
+          replacement.readOnly = true;
+          replacement.autocomplete = 'off';
+          replacement.placeholder = 'لا يوجد سيرفر مخصص لهذا الجهاز';
+          serverInput.replaceWith(replacement);
+          serverInput = replacement;
+        }
+        if (serverInput) {
           serverInput.value = '';
           serverInput.readOnly = true;
           serverInput.placeholder = 'لا يوجد سيرفر مخصص لهذا الجهاز';
