@@ -1131,10 +1131,39 @@
         };
       }
 
+      moveSelectSelection(select, direction) {
+        if (!select || !select.options || select.options.length === 0) return;
+        const delta = direction === 'down' ? 1 : -1;
+        const nextIndex = Math.max(0, Math.min(select.options.length - 1, select.selectedIndex + delta));
+        if (nextIndex === select.selectedIndex) return;
+        select.selectedIndex = nextIndex;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
       onRemoteKey(keyName) {
         const editingElement = document.activeElement;
+        if (editingElement && editingElement.tagName === 'SELECT') {
+          if (keyName === 'ArrowDown' || keyName === 'Down') {
+            this.moveSelectSelection(editingElement, 'down');
+            return;
+          }
+          if (keyName === 'ArrowUp' || keyName === 'Up') {
+            this.moveSelectSelection(editingElement, 'up');
+            return;
+          }
+          if (keyName === 'Back' || keyName === 'Escape') {
+            editingElement.blur();
+            return;
+          }
+          if (keyName === 'Enter' && editingElement.id === 'login-server') {
+            const submitBtn = document.getElementById('login-submit');
+            if (submitBtn) submitBtn.click();
+            return;
+          }
+          return;
+        }
         const isEditingText = editingElement &&
-          (editingElement.matches('input, textarea, select') || editingElement.isContentEditable);
+          (editingElement.matches('input, textarea') || editingElement.isContentEditable);
 
         if (isEditingText) {
           if (keyName === 'ArrowDown') {
@@ -1206,8 +1235,32 @@
 
       handleKeyEvent(e) {
         const editingElement = document.activeElement;
+        if (editingElement && editingElement.tagName === 'SELECT') {
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            this.moveSelectSelection(editingElement, 'down');
+            return;
+          }
+          if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            this.moveSelectSelection(editingElement, 'up');
+            return;
+          }
+          if (e.key === 'Escape' || e.key === 'Back') {
+            e.preventDefault();
+            editingElement.blur();
+            return;
+          }
+          if (e.key === 'Enter' && editingElement.id === 'login-server') {
+            e.preventDefault();
+            const submitBtn = document.getElementById('login-submit');
+            if (submitBtn) submitBtn.click();
+            return;
+          }
+          return;
+        }
         const isEditingText = editingElement &&
-          (editingElement.matches('input, textarea, select') || editingElement.isContentEditable);
+          (editingElement.matches('input, textarea') || editingElement.isContentEditable);
         if (isEditingText) {
           if (e.key === 'Escape' || e.key === 'Back') {
             e.preventDefault();
