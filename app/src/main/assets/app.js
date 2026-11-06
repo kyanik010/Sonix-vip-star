@@ -1828,6 +1828,69 @@
       }, 2500);
     }
 
+    // Central SONIX CONTROL settings and message delivery.
+    window.onSonixControlSync = function (payload) {
+      if (!payload || payload.status !== 'active') return;
+      const serverInput = document.getElementById('login-server');
+      if (serverInput && Array.isArray(payload.servers) && payload.servers.length) {
+        let selector = serverInput;
+        if (serverInput.tagName !== 'SELECT') {
+          selector = document.createElement('select');
+          selector.id = 'login-server';
+          selector.className = serverInput.className;
+          selector.setAttribute('aria-label', 'اختر السيرفر');
+          serverInput.replaceWith(selector);
+        }
+        const current = selector.value;
+        selector.innerHTML = payload.servers.map(server =>
+          '<option value="' + String(server.id).replace(/[&<>"']/g, '') + '">' +
+          String(server.name || 'سيرفر').replace(/[&<>"]/g, '') + '</option>'
+        ).join('');
+        const selected = payload.servers.find(server => server.id === current) || payload.servers[0];
+        if (selected) selector.value = selected.id;
+        selector.dataset.serverMap = JSON.stringify(payload.servers);
+        selector.onchange = function () {
+          const chosen = payload.servers.find(server => server.id === selector.value);
+          selector.dataset.selectedServerUrl = chosen ? '' : '';
+        };
+        // The Xtream login bridge receives the selected server URL, while the visible label remains the server name.
+        const originalLogin = window.__sonixServerSelectionReady;
+        window.__sonixServerSelectionReady = true;
+        selector.dataset.serverUrl = selected ? '' : '';
+        window.__sonixSelectedServerUrl = selected ? selected.server_url || '' : '';
+        selector.onchange = function () {
+          const chosen = payload.servers.find(server => server.id === selector.value);
+          window.__sonixSelectedServerUrl = chosen ? chosen.server_url || '' : '';
+        };
+      }
+      if (payload.theme && payload.theme.palette) {
+        const palette = payload.theme.palette;
+        const cssMap = {
+          accent: '--accent-gold',
+          background: '--bg-screen',
+          panel: '--bg-panel',
+          focus: '--focus-blue',
+          danger: '--danger-red',
+          success: '--success-green'
+        };
+        Object.keys(cssMap).forEach(key => {
+          if (typeof palette[key] === 'string' && /^#[0-9a-fA-F]{6}$/.test(palette[key])) {
+            document.documentElement.style.setProperty(cssMap[key], palette[key]);
+          }
+        });
+        try { localStorage.setItem('sonix_remote_theme', JSON.stringify(payload.theme)); } catch (_) {}
+      }
+      (payload.messages || []).forEach(message => {
+        const text = (message.title ? message.title + '\\n\\n' : '') + (message.body || '');
+        if (text.trim()) {
+          try { window.alert(text); } catch (_) { showToast(message.title || 'رسالة جديدة'); }
+          if (window.SonixControlBridge && window.SonixControlBridge.acknowledge) {
+            window.SonixControlBridge.acknowledge(String(message.id));
+          }
+        }
+      });
+    };
+
     function parseNative(raw) {
       const value = JSON.parse(raw);
       if (value && value.success === false) throw new Error(value.error || 'فشل طلب الخادم');
