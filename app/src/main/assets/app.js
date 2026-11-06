@@ -1854,16 +1854,24 @@
       if (payload.theme && payload.theme.palette) {
         const palette = payload.theme.palette;
         const cssMap = {
-          accent: '--accent-gold',
-          background: '--bg-screen',
-          panel: '--bg-panel',
-          focus: '--focus-blue',
-          danger: '--danger-red',
-          success: '--success-green'
+          accent: ['--accent-gold'],
+          background: ['--bg-screen', '--bg-main-start', '--bg-main-end'],
+          panel: ['--bg-panel', '--card-glass', '--card-glass-hover'],
+          focus: ['--focus-blue'],
+          danger: ['--danger-red'],
+          success: ['--success-green']
         };
-        Object.keys(cssMap).forEach(key => {
-          if (typeof palette[key] === 'string' && /^#[0-9a-fA-F]{6}$/.test(palette[key])) {
-            document.documentElement.style.setProperty(cssMap[key], palette[key]);
+        Object.entries(cssMap).forEach(([key, variables]) => {
+          const value = palette[key];
+          if (typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value)) {
+            variables.forEach(variable => document.documentElement.style.setProperty(variable, value));
+            if (key === 'focus') {
+              const hex = value.slice(1);
+              const red = parseInt(hex.slice(0, 2), 16);
+              const green = parseInt(hex.slice(2, 4), 16);
+              const blue = parseInt(hex.slice(4, 6), 16);
+              document.documentElement.style.setProperty('--focus-glow', 'rgba(' + red + ', ' + green + ', ' + blue + ', 0.45)');
+            }
           }
         });
         try { localStorage.setItem('sonix_remote_theme', JSON.stringify(payload.theme)); } catch (_) {}
