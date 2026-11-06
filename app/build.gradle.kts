@@ -84,6 +84,8 @@ secrets {
 googleServices { missingGoogleServicesStrategy = MissingGoogleServicesStrategy.WARN }
 
 dependencies {
+  // Android WorkManager: periodic, network-constrained catalog refresh while the app is closed.
+  implementation("androidx.work:work-runtime-ktx:2.10.1")
   // AndroidX Media3 ExoPlayer for IPTV live streaming, HLS, DASH, VOD and UI
   implementation("androidx.media3:media3-exoplayer:1.5.1")
   implementation("androidx.media3:media3-exoplayer-hls:1.5.1")
