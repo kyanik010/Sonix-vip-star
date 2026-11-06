@@ -357,7 +357,46 @@
       margin: 0 auto;
       padding-top: 4px;
     }
+    .home-bottom-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 7px;
+      width: fit-content;
+      max-width: 90%;
+    }
+    .home-whatsapp-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      box-sizing: border-box;
+      padding: clamp(6px, 0.9vh, 9px) clamp(16px, 2.2vw, 28px);
+      border: 1px solid rgba(37, 211, 102, 0.35);
+      border-radius: 9999px;
+      background: rgba(17, 24, 32, 0.88);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      white-space: nowrap;
+    }
+    .home-whatsapp-icon {
+      width: clamp(18px, 1.7vw, 23px);
+      height: clamp(18px, 1.7vw, 23px);
+      flex: 0 0 auto;
+      color: #25D366;
+    }
+    .home-whatsapp-number {
+      color: #FFFFFF;
+      font-size: clamp(0.78rem, 1vw, 0.92rem);
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      font-family: 'Cairo', sans-serif;
+    }
     .user-card {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
       display: inline-flex;
       flex-direction: row;
       align-items: center;
