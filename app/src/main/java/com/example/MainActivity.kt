@@ -133,6 +133,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var xtreamBridge: XtreamBridge
     private lateinit var sonixControlClient: SonixControlClient
     private val sonixControlHandler = Handler(Looper.getMainLooper())
+    @Volatile private var sonixControlPageReady = false
     private val sonixControlPoll = object : Runnable {
         override fun run() {
             if (::sonixControlClient.isInitialized) sonixControlClient.sync()
@@ -188,10 +189,9 @@ class MainActivity : ComponentActivity() {
 
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
-                        if (url == "file:///android_asset/sonix_tv.html" && ::sonixControlClient.isInitialized) {
-                            // The first onResume sync can finish before the WebView has installed
-                            // window.onSonixControlSync. Sync again after the app UI is ready.
-                            sonixControlClient.sync()
+                        if (url == "file:///android_asset/sonix_tv.html") {
+                            sonixControlPageReady = true
+                            if (::sonixControlClient.isInitialized) sonixControlClient.sync()
                         }
                     }
 
@@ -1601,7 +1601,7 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         if (immersiveVideoFullscreen) window.decorView.post { applyVideoFullscreenSystemUi() }
         webView?.onResume()
-        if (::sonixControlClient.isInitialized) sonixControlClient.sync()
+        if (::sonixControlClient.isInitialized && sonixControlPageReady) sonixControlClient.sync()
         sonixControlHandler.removeCallbacks(sonixControlPoll)
         sonixControlHandler.postDelayed(sonixControlPoll, 5 * 60 * 1000L)
         if (resumeNativePlayerAfterPause) nativePlayer?.play()
