@@ -1844,7 +1844,8 @@
             selector.setAttribute('aria-label', 'اختر السيرفر');
             serverInput.replaceWith(selector);
           }
-          const current = selector.value;
+          const current = selector.value || (serverId === 'iptv-server-url'
+            ? (document.getElementById('login-server')?.value || '') : '');
           selector.innerHTML = payload.servers.map(server =>
             '<option value="' + String(server.server_url || '').replace(/[&<>"']/g, '') + '">' +
             String(server.name || 'سيرفر').replace(/[&<>"]/g, '') + '</option>'
