@@ -1843,11 +1843,11 @@
         }
         const current = selector.value;
         selector.innerHTML = payload.servers.map(server =>
-          '<option value="' + String(server.id).replace(/[&<>"']/g, '') + '">' +
+          '<option value="' + String(server.server_url || '').replace(/[&<>"']/g, '') + '">' +
           String(server.name || 'سيرفر').replace(/[&<>"]/g, '') + '</option>'
         ).join('');
         const selected = payload.servers.find(server => server.server_url === current) || payload.servers[0];
-        if (selected) selector.value = selected.id;
+        if (selected) selector.value = selected.server_url || '';
         selector.dataset.serverMap = 'names-only';
         selector.onchange = function () {
           const chosen = payload.servers.find(server => server.id === selector.value);
