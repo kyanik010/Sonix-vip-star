@@ -185,6 +185,15 @@ class MainActivity : ComponentActivity() {
                         return false
                     }
 
+                    override fun onPageFinished(view: WebView?, url: String?) {
+                        super.onPageFinished(view, url)
+                        if (url == "file:///android_asset/sonix_tv.html" && ::sonixControlClient.isInitialized) {
+                            // The first onResume sync can finish before the WebView has installed
+                            // window.onSonixControlSync. Sync again after the app UI is ready.
+                            sonixControlClient.sync()
+                        }
+                    }
+
                     override fun onRenderProcessGone(view: WebView?, detail: android.webkit.RenderProcessGoneDetail?): Boolean {
                         android.util.Log.e("SONIXPlayback", "WebView render process gone; didCrash=" + detail?.didCrash())
                         view?.destroy()
