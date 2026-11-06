@@ -2034,10 +2034,12 @@
         const episodes=data.episodes || {};
         const list=document.getElementById('series-episodes-list');
         list.innerHTML='';
+        const seasonKeys=Object.keys(episodes).sort((a,b)=>Number(a)-Number(b));
+        list.style.setProperty('--season-count',Math.max(seasonKeys.length,1));
         const formatEpisodeDuration=(episode)=>{
           const info=episode.info || {};
           const raw=info.duration || episode.duration || '';
-          if(raw && /^\\d{1,2}:\\d{2}:\\d{2}$/.test(String(raw))) return String(raw);
+          if(raw && /^\d{1,2}:\d{2}:\d{2}$/.test(String(raw))) return String(raw);
           const seconds=Number(info.duration_secs || episode.duration_secs || 0);
           if(seconds>0) {
             const h=Math.floor(seconds/3600);
@@ -2047,36 +2049,22 @@
           }
           return raw ? String(raw) : 'المدة غير متاحة';
         };
-        Object.keys(episodes).sort((a,b)=>Number(a)-Number(b)).forEach(season=>{
+        seasonKeys.forEach(season=>{
+          const seasonColumn=document.createElement('section');
+          seasonColumn.className='series-season-column';
+          seasonColumn.setAttribute('aria-label','الموسم '+season);
           const heading=document.createElement('div');
           heading.className='series-season-heading';
           heading.textContent='الموسم ' + season;
-          list.appendChild(heading);
+          seasonColumn.appendChild(heading);
           (episodes[season] || []).forEach(ep=>{
             const episodeNumber=Number(ep.episode_num || 0);
             const episodeCode='S'+String(season).padStart(2,'0')+'E'+String(episodeNumber).padStart(2,'0');
-            const info=ep.info || {};
-            const thumbnailUrl=info.movie_image || info.cover_big || ep.movie_image || ep.cover || '';
             const card=document.createElement('button');
             card.type='button';
             card.className='episode-card focusable';
             card.setAttribute('role','listitem');
             card.setAttribute('aria-label',episodeCode+' '+(ep.title || 'الحلقة'));
-            const thumbnail=document.createElement('span');
-            thumbnail.className='episode-thumbnail';
-            if(thumbnailUrl) {
-              const image=document.createElement('img');
-              image.src=thumbnailUrl;
-              image.alt='';
-              image.loading='lazy';
-              image.onerror=()=>{ image.remove(); };
-              thumbnail.appendChild(image);
-            }
-            const play=document.createElement('span');
-            play.className='episode-play-icon';
-            play.setAttribute('aria-hidden','true');
-            play.textContent='▶';
-            thumbnail.appendChild(play);
             const details=document.createElement('span');
             details.className='episode-details';
             const code=document.createElement('span');
@@ -2089,7 +2077,7 @@
             duration.className='episode-duration';
             duration.textContent=formatEpisodeDuration(ep);
             details.append(code,name,duration);
-            card.append(thumbnail,details);
+            card.appendChild(details);
             card.addEventListener('click',()=>{
               const ext=ep.container_extension || 'mp4';
               closeAllModals();
@@ -2098,8 +2086,9 @@
                 subtitleSeason:Number(season),subtitleEpisode:episodeNumber,
                 streamDescriptor:{type:'series',id:String(ep.id),ext:ext},streamUrl:'native://stream'});
             });
-            list.appendChild(card);
+            seasonColumn.appendChild(card);
           });
+          list.appendChild(seasonColumn);
         });
         if(!list.querySelector('.episode-card')) throw new Error('لا توجد حلقات متاحة لهذا المسلسل');
         document.getElementById('series-episodes-modal').classList.add('active');
