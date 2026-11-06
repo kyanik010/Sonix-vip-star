@@ -1941,6 +1941,8 @@
     window.onSonixControlSync = function (payload) {
       if (!payload || payload.status !== 'active') return;
       if (Array.isArray(payload.servers) && payload.servers.length) {
+        const loginButton = document.getElementById('login-submit');
+        if (loginButton) loginButton.disabled = false;
         ['login-server', 'iptv-server-url'].forEach(serverId => {
           const serverInput = document.getElementById(serverId);
           if (!serverInput) return;
@@ -1962,6 +1964,16 @@
           const selected = payload.servers.find(server => server.server_url === current) || payload.servers[0];
           if (selected) selector.value = selected.server_url || '';
         });
+      } else {
+        const serverInput = document.getElementById('login-server');
+        if (serverInput && serverInput.tagName !== 'SELECT') {
+          serverInput.value = '';
+          serverInput.readOnly = true;
+          serverInput.placeholder = 'لا يوجد سيرفر مخصص لهذا الجهاز';
+        }
+        const loginButton = document.getElementById('login-submit');
+        if (loginButton) loginButton.disabled = true;
+        setLoginMessage('لم يتم تخصيص سيرفر لهذا الجهاز من لوحة التحكم.');
       }
       applySonixRemoteTheme(payload.theme);
       (payload.messages || []).forEach(message => {
