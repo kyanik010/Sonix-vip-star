@@ -141,6 +141,7 @@ class MainActivity : ComponentActivity() {
 
         try {
             xtreamBridge = XtreamBridge(this)
+            if (xtreamBridge.hasSavedCredentials()) CatalogRefreshScheduler.ensureScheduled(this)
             val wv = WebView(this).apply {
                 isFocusable = true
                 isFocusableInTouchMode = true
