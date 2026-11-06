@@ -201,6 +201,7 @@ class MainActivity : ComponentActivity() {
 
                 addJavascriptInterface(WebAppInterface(this@MainActivity), "AndroidBridge")
                 addJavascriptInterface(xtreamBridge, "XtreamBridge")
+                addJavascriptInterface(SonixControlBridge(), "SonixControlBridge")
                 addJavascriptInterface(NativePlaybackBridge(), "NativePlayback")
             }
 
@@ -256,6 +257,17 @@ class MainActivity : ComponentActivity() {
             wv.loadUrl("file:///android_asset/sonix_tv.html")
         } catch (e: Exception) {
             android.util.Log.e("SONIXPlayback", "Error initializing MainActivity", e)
+        }
+    }
+
+    private inner class SonixControlBridge {
+        @android.webkit.JavascriptInterface
+        fun acknowledge(messageId: String) {
+            if (::sonixControlClient.isInitialized) sonixControlClient.acknowledge(messageId)
+        }
+        @android.webkit.JavascriptInterface
+        fun setTheme(themeId: String) {
+            if (::sonixControlClient.isInitialized) sonixControlClient.setTheme(themeId)
         }
     }
 
