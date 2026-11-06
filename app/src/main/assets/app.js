@@ -1848,20 +1848,8 @@
         ).join('');
         const selected = payload.servers.find(server => server.server_url === current) || payload.servers[0];
         if (selected) selector.value = selected.server_url || '';
-        selector.dataset.serverMap = 'names-only';
-        selector.onchange = function () {
-          const chosen = payload.servers.find(server => server.id === selector.value);
-          selector.dataset.selectedServerUrl = chosen ? '' : '';
-        };
-        // The Xtream login bridge receives the selected server URL, while the visible label remains the server name.
-        const originalLogin = window.__sonixServerSelectionReady;
-        window.__sonixServerSelectionReady = true;
-        selector.dataset.serverUrl = selected ? '' : '';
-        window.__sonixSelectedServerUrl = selected ? selected.server_url || '' : '';
-        selector.onchange = function () {
-          const chosen = payload.servers.find(server => server.id === selector.value);
-          window.__sonixSelectedServerUrl = chosen ? chosen.server_url || '' : '';
-        };
+        // Only the server name is visible; the selected URL is passed to the existing Xtream login input.
+
       }
       if (payload.theme && payload.theme.palette) {
         const palette = payload.theme.palette;
