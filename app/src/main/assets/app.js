@@ -1142,7 +1142,8 @@
 
       onRemoteKey(keyName) {
         const editingElement = document.activeElement;
-        if (editingElement && editingElement.tagName === 'SELECT') {
+        if (editingElement && editingElement.tagName === 'SELECT' &&
+            (editingElement.id === 'login-server' || editingElement.id === 'iptv-server-url')) {
           if (keyName === 'ArrowDown' || keyName === 'Down') {
             this.navigateSpatial('down');
             return;
@@ -1243,7 +1244,8 @@
 
       handleKeyEvent(e) {
         const editingElement = document.activeElement;
-        if (editingElement && editingElement.tagName === 'SELECT') {
+        if (editingElement && editingElement.tagName === 'SELECT' &&
+            (editingElement.id === 'login-server' || editingElement.id === 'iptv-server-url')) {
           if (e.key === 'ArrowDown') {
             e.preventDefault();
             this.navigateSpatial('down');
