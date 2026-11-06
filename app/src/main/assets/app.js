@@ -1831,25 +1831,27 @@
     // Central SONIX CONTROL settings and message delivery.
     window.onSonixControlSync = function (payload) {
       if (!payload || payload.status !== 'active') return;
-      const serverInput = document.getElementById('login-server');
-      if (serverInput && Array.isArray(payload.servers) && payload.servers.length) {
-        let selector = serverInput;
-        if (serverInput.tagName !== 'SELECT') {
-          selector = document.createElement('select');
-          selector.id = 'login-server';
-          selector.className = serverInput.className;
-          selector.setAttribute('aria-label', 'اختر السيرفر');
-          serverInput.replaceWith(selector);
-        }
-        const current = selector.value;
-        selector.innerHTML = payload.servers.map(server =>
-          '<option value="' + String(server.server_url || '').replace(/[&<>"']/g, '') + '">' +
-          String(server.name || 'سيرفر').replace(/[&<>"]/g, '') + '</option>'
-        ).join('');
-        const selected = payload.servers.find(server => server.server_url === current) || payload.servers[0];
-        if (selected) selector.value = selected.server_url || '';
-        // Only the server name is visible; the selected URL is passed to the existing Xtream login input.
-
+      if (Array.isArray(payload.servers) && payload.servers.length) {
+        ['login-server', 'iptv-server-url'].forEach(serverId => {
+          const serverInput = document.getElementById(serverId);
+          if (!serverInput) return;
+          let selector = serverInput;
+          if (serverInput.tagName !== 'SELECT') {
+            selector = document.createElement('select');
+            selector.id = serverId;
+            selector.className = serverInput.className;
+            selector.style.cssText = serverInput.style.cssText;
+            selector.setAttribute('aria-label', 'اختر السيرفر');
+            serverInput.replaceWith(selector);
+          }
+          const current = selector.value;
+          selector.innerHTML = payload.servers.map(server =>
+            '<option value="' + String(server.server_url || '').replace(/[&<>"']/g, '') + '">' +
+            String(server.name || 'سيرفر').replace(/[&<>"]/g, '') + '</option>'
+          ).join('');
+          const selected = payload.servers.find(server => server.server_url === current) || payload.servers[0];
+          if (selected) selector.value = selected.server_url || '';
+        });
       }
       if (payload.theme && payload.theme.palette) {
         const palette = payload.theme.palette;
