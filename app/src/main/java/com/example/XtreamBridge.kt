@@ -71,6 +71,8 @@ class XtreamBridge(context: Context) {
             val userInfo = XtreamAccountValidator.validate(root, System.currentTimeMillis())
 
             vault.save(normalizedServer, username, password)
+            try { CatalogRefreshScheduler.ensureScheduled(appContext) }
+            catch (scheduleError: Exception) { android.util.Log.w("SONIX", "Could not schedule background catalog refresh", scheduleError) }
             JSONObject()
                 .put("success", true)
                 .put("user_info", userInfo)
@@ -475,6 +477,8 @@ class XtreamBridge(context: Context) {
     fun logout(): String {
         vault.clear()
         clearCatalogCache()
+        try { CatalogRefreshScheduler.cancel(appContext) }
+        catch (scheduleError: Exception) { android.util.Log.w("SONIX", "Could not cancel background catalog refresh", scheduleError) }
         return JSONObject().put("success", true).toString()
     }
 
