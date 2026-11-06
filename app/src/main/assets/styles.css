@@ -2577,3 +2577,10 @@
 .addons-manifest-row input { min-width:0; flex:1; }
 .addons-manifest-row button { flex-shrink:0; }
 @media (max-width:600px) { .addons-manifest-row { flex-direction:column; } }
+
+/* Login screen: hide legacy URL-entry shortcut buttons (clear, com, ports, protocols). */
+.tv-quick-bar,
+.tv-quick-btn {
+  display: none !important;
+  visibility: hidden !important;
+}
