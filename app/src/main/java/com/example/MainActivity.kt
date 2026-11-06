@@ -70,6 +70,7 @@ class MainActivity : ComponentActivity() {
 
     private var webView: WebView? = null
     private var rootContainer: FrameLayout? = null
+    private var sonixBackgroundDrawable: SonixBackgroundDrawable? = null
     private var nativePlayer: ExoPlayer? = null
     private var nativePlayerView: PlayerView? = null
     private var nativeVideoStreamType: String? = null
@@ -240,8 +241,10 @@ class MainActivity : ComponentActivity() {
             }
 
             webView = wv
+            val themedBackground = SonixBackgroundDrawable()
+            sonixBackgroundDrawable = themedBackground
             val root = FrameLayout(this).apply {
-                background = SonixBackgroundDrawable()
+                background = themedBackground
                 // Keep the native video child clipped to the application window.
                 clipChildren = true
                 clipToPadding = true
@@ -277,6 +280,11 @@ class MainActivity : ComponentActivity() {
         @android.webkit.JavascriptInterface
         fun setTheme(themeId: String) {
             if (::sonixControlClient.isInitialized) sonixControlClient.setTheme(themeId)
+        }
+        @android.webkit.JavascriptInterface
+        fun setBackgroundColor(color: String) {
+            val parsed = try { Color.parseColor(color) } catch (_: IllegalArgumentException) { return }
+            runOnUiThread { sonixBackgroundDrawable?.setThemeBackground(parsed) }
         }
     }
 
@@ -1641,6 +1649,18 @@ class MainActivity : ComponentActivity() {
 /** Native equivalent of the SONIX screen gradients, visible behind the transparent WebView. */
 private class SonixBackgroundDrawable : Drawable() {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private var startColor = Color.rgb(11, 17, 24)
+    private var endColor = Color.rgb(26, 36, 48)
+
+    fun setThemeBackground(color: Int) {
+        startColor = color
+        endColor = Color.rgb(
+            (Color.red(color) + 18).coerceAtMost(255),
+            (Color.green(color) + 18).coerceAtMost(255),
+            (Color.blue(color) + 18).coerceAtMost(255)
+        )
+        invalidateSelf()
+    }
 
     override fun draw(canvas: Canvas) {
         val area = bounds
@@ -1648,7 +1668,7 @@ private class SonixBackgroundDrawable : Drawable() {
         val height = area.height().toFloat().coerceAtLeast(1f)
         paint.shader = LinearGradient(
             area.left.toFloat(), area.top.toFloat(), area.right.toFloat(), area.bottom.toFloat(),
-            Color.rgb(11, 17, 24), Color.rgb(26, 36, 48), Shader.TileMode.CLAMP
+            startColor, endColor, Shader.TileMode.CLAMP
         )
         canvas.drawRect(area, paint)
         paint.shader = RadialGradient(
