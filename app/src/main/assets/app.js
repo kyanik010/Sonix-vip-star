@@ -2004,7 +2004,7 @@
         window.setTimeout(prepareCatalogHome, 0);
         document.getElementById('login-password').value='';
         const settingsPassword=document.getElementById('iptv-password'); if(settingsPassword) settingsPassword.value='';
-        showToast('تم التحقق من الاشتراك؛ اختر القسم الذي تريد مزامنته');
+        showToast('تم تسجيل الدخول بنجاح');
       } catch(error) {
         if (offlineFallback) {
           try {
