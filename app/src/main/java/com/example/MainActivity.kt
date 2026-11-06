@@ -130,6 +130,14 @@ class MainActivity : ComponentActivity() {
     private var nativeVideoVolumeBeforeExternalAudio = 1f
     private var nativeVideoMuted = false
     private lateinit var xtreamBridge: XtreamBridge
+    private lateinit var sonixControlClient: SonixControlClient
+    private val sonixControlHandler = Handler(Looper.getMainLooper())
+    private val sonixControlPoll = object : Runnable {
+        override fun run() {
+            if (::sonixControlClient.isInitialized) sonixControlClient.sync()
+            sonixControlHandler.postDelayed(this, 5 * 60 * 1000L)
+        }
+    }
     @Volatile private var webTextInputFocused = false
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -141,6 +149,7 @@ class MainActivity : ComponentActivity() {
 
         try {
             xtreamBridge = XtreamBridge(this)
+            sonixControlClient = SonixControlClient(this)
             if (xtreamBridge.hasSavedCredentials()) CatalogRefreshScheduler.ensureScheduled(this)
             val wv = WebView(this).apply {
                 isFocusable = true
@@ -193,6 +202,11 @@ class MainActivity : ComponentActivity() {
                 addJavascriptInterface(WebAppInterface(this@MainActivity), "AndroidBridge")
                 addJavascriptInterface(xtreamBridge, "XtreamBridge")
                 addJavascriptInterface(NativePlaybackBridge(), "NativePlayback")
+            }
+
+            sonixControlClient.onSync = { result ->
+                val payload = JSONObject.quote(result.toString())
+                wv.post { wv.evaluateJavascript("window.onSonixControlSync && window.onSonixControlSync(JSON.parse($payload))", null) }
             }
 
             xtreamBridge.setAsyncResultHandler { requestId, result ->
@@ -1558,6 +1572,9 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         if (immersiveVideoFullscreen) window.decorView.post { applyVideoFullscreenSystemUi() }
         webView?.onResume()
+        if (::sonixControlClient.isInitialized) sonixControlClient.sync()
+        sonixControlHandler.removeCallbacks(sonixControlPoll)
+        sonixControlHandler.postDelayed(sonixControlPoll, 5 * 60 * 1000L)
         if (resumeNativePlayerAfterPause) nativePlayer?.play()
         if (resumeNativePlayerAfterPause && externalAudioActive) secondaryAudioPlayer?.play()
         resumeNativePlayerAfterPause = false
@@ -1565,6 +1582,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onPause() {
         super.onPause()
+        sonixControlHandler.removeCallbacks(sonixControlPoll)
         webView?.evaluateJavascript(
             "(function() { if (window.videoPlaybackController) { window.videoPlaybackController.pause(); } })()",
             null
@@ -1587,6 +1605,8 @@ class MainActivity : ComponentActivity() {
         applyVideoFullscreenSystemUi()
         detachExternalAudioInternal(false)
         stopNativePlayer()
+        sonixControlHandler.removeCallbacks(sonixControlPoll)
+        if (::sonixControlClient.isInitialized) sonixControlClient.shutdown()
         if (::xtreamBridge.isInitialized) xtreamBridge.shutdown()
         subtitleIoExecutor.shutdownNow()
         codecDiagnosticsExecutor.shutdownNow()
