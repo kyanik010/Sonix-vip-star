@@ -14,22 +14,12 @@
 
   <section id="sonix-login-screen" class="hidden" aria-label="تسجيل الدخول">
     <div class="sonix-login-card">
-      <div class="sonix-brand" style="align-items:center"><div class="sonix-title-row"><span class="sonix-text">SONIX</span><span class="tv-text">TV</span></div><span class="stream-subtitle">XTREAM CODES</span></div>
-      <div style="text-align:center;color:var(--text-silver);font-size:0.85rem;">أدخل بيانات اشتراك IPTV للاتصال بالخادم</div>
-      <input id="login-server" class="focusable" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="عنوان السيرفر http://server:port">
+      <div class="sonix-brand" style="align-items:center"><div class="sonix-title-row"><span class="sonix-text">SONIX</span><span class="tv-text">TV</span></div><span class="stream-subtitle">SONIX TV</span></div>
+      <div style="text-align:center;color:var(--text-silver);font-size:0.85rem;">أدخل اسم المستخدم وكلمة المرور للاتصال بالسيرفر المخصص</div>
+      <input id="login-server" class="focusable" type="text" readonly autocomplete="off" placeholder="جارٍ تحميل السيرفر المخصص...">
       <input id="login-username" class="focusable" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="اسم المستخدم">
       <input id="login-password" class="focusable" type="password" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="كلمة المرور">
       
-      <!-- TV Remote Quick Input Bar -->
-      <div class="tv-quick-bar" aria-label="مساعد الريموت للإدخال السريع">
-        <button type="button" class="tv-quick-btn focusable" data-insert="http://">http://</button>
-        <button type="button" class="tv-quick-btn focusable" data-insert="https://">https://</button>
-        <button type="button" class="tv-quick-btn focusable" data-insert=":8080">:8080</button>
-        <button type="button" class="tv-quick-btn focusable" data-insert=":80">:80</button>
-        <button type="button" class="tv-quick-btn focusable" data-insert=".com">.com</button>
-        <button type="button" class="tv-quick-btn focusable btn-clear" data-action="clear">مسح</button>
-      </div>
-
       <button id="login-submit" class="focusable" type="button">تسجيل الدخول</button>
       <div id="sonix-login-message" role="status"></div>
     </div>
@@ -661,7 +651,7 @@
 
           <section class="settings-section">
             <div class="settings-section-heading">إدارة اشتراك IPTV</div>
-            <input type="text" id="iptv-server-url" class="search-input focusable" style="border-radius:8px;" placeholder="اسم السيرفر أو رابط الاتصال" aria-label="السيرفر" />
+            <input type="text" id="iptv-server-url" class="search-input focusable" style="border-radius:8px;" placeholder="السيرفر المخصص" aria-label="السيرفر" readonly />
             <div class="settings-credentials-row">
               <input type="text" id="iptv-username" class="search-input focusable" style="border-radius:8px;" placeholder="اسم المستخدم (Username)" />
               <input type="password" id="iptv-password" class="search-input focusable" style="border-radius:8px;" placeholder="كلمة المرور (Password)" />
