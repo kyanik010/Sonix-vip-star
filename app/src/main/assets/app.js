@@ -1867,10 +1867,10 @@
       const config=CATALOG_SECTIONS[section],card=config&&document.getElementById(config.card);
       const overlay=card&&card.querySelector('[data-catalog-overlay]');
       if(!card||!overlay)return;
-      catalogSyncStates[section]=state;card.classList.toggle('catalog-ready',state==='ready');
+      catalogSyncStates[section]=state;card.classList.toggle('catalog-ready',state==='ready'||state==='cached');
       const prompt=overlay.querySelector('.catalog-sync-prompt'),loading=overlay.querySelector('.catalog-sync-loading');
       const error=overlay.querySelector('.catalog-sync-error'),errorText=overlay.querySelector('.catalog-sync-error-text');
-      if(prompt)prompt.hidden=state!=='missing'&&state!=='cached';
+      if(prompt)prompt.hidden=state!=='missing';
       if(loading)loading.hidden=state!=='loading';
       if(error)error.hidden=state!=='error';
       if(errorText)errorText.textContent=message||'تعذر الاتصال بالخادم';
@@ -1963,7 +1963,7 @@
 
     function openCatalogSection(section){
       const config=CATALOG_SECTIONS[section];if(!config)return;
-      if(catalogSyncStates[section]!=='ready'){startCatalogSync(section);return;}
+      if(catalogSyncStates[section]!=='ready'&&catalogSyncStates[section]!=='cached'){startCatalogSync(section);return;}
       switchView('view-live');
       if(section==='live'){if(window.NativePlayback&&typeof window.NativePlayback.stop==='function')window.NativePlayback.stop();if(videoPlaybackController){videoPlaybackController.currentItem=null;videoPlaybackController.hidePlaybackControls();}const panel=document.querySelector('.live-player-col');if(panel)panel.classList.remove('has-active-playback');}
       setAppMode(config.mode);
