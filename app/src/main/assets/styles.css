@@ -408,7 +408,6 @@
       border-radius: 9999px;
       padding: clamp(6px, 1vh, 9px) clamp(16px, 2.2vw, 28px);
       box-shadow: 0 4px 18px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-      max-width: 90%;
       text-align: center;
       white-space: nowrap;
     }
