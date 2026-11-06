@@ -1144,10 +1144,18 @@
         const editingElement = document.activeElement;
         if (editingElement && editingElement.tagName === 'SELECT') {
           if (keyName === 'ArrowDown' || keyName === 'Down') {
-            this.moveSelectSelection(editingElement, 'down');
+            this.navigateSpatial('down');
             return;
           }
           if (keyName === 'ArrowUp' || keyName === 'Up') {
+            this.navigateSpatial('up');
+            return;
+          }
+          if (keyName === 'ArrowRight' || keyName === 'Right') {
+            this.moveSelectSelection(editingElement, 'down');
+            return;
+          }
+          if (keyName === 'ArrowLeft' || keyName === 'Left') {
             this.moveSelectSelection(editingElement, 'up');
             return;
           }
@@ -1238,10 +1246,20 @@
         if (editingElement && editingElement.tagName === 'SELECT') {
           if (e.key === 'ArrowDown') {
             e.preventDefault();
-            this.moveSelectSelection(editingElement, 'down');
+            this.navigateSpatial('down');
             return;
           }
           if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            this.navigateSpatial('up');
+            return;
+          }
+          if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            this.moveSelectSelection(editingElement, 'down');
+            return;
+          }
+          if (e.key === 'ArrowLeft') {
             e.preventDefault();
             this.moveSelectSelection(editingElement, 'up');
             return;
