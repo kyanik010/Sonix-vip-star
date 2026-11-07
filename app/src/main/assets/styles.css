@@ -3487,3 +3487,15 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* SONIX native video preview: expose the TextureView beneath the transparent WebView. */
+/* The native Media3 TextureView is placed behind WebView. During the live/content
+   browser, keep the HTML canvas transparent so the native video can show through
+   the 16:9 .video-viewport instead of being covered by the app's CSS backdrop. */
+#app-container:has(#view-live.active) {
+  background: transparent !important;
+}
+body:has(#view-live.active) > .ambient-waves {
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
