@@ -381,6 +381,8 @@
     try {
       const result = await nativeApplySubtitle(entry.url,entry.label);
       if (!result.success) throw new Error(result.error || 'تعذر تحميل الترجمة');
+      button.disabled = false;
+      button.querySelector('span:last-child').textContent = 'تم التفعيل';
       currentSubtitleLabel = entry.label;
       const status = document.getElementById('subtitle-search-status');
       if (status) status.textContent = 'تم تطبيق الترجمة: ' + entry.label;
