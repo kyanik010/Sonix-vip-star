@@ -1157,6 +1157,12 @@ class MainActivity : ComponentActivity() {
             require(parsedCues.isNotEmpty()) { "ملف الترجمة لا يحتوي على توقيتات أو نصوص قابلة للعرض" }
             // Keep the previous subtitle visible until the replacement is valid.
             // This only updates SubtitleView; ExoPlayer keeps its current item/position.
+            nativePlayer?.let { player ->
+                player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
+                    .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
+                    .clearOverridesOfType(C.TRACK_TYPE_TEXT)
+                    .build()
+            }
             activeSubtitleFile = file
             activeSubtitleCues = parsedCues
             lastRenderedSubtitleText = null
@@ -1226,7 +1232,7 @@ class MainActivity : ComponentActivity() {
                 add(begin, end, match.groupValues[2])
             }
         } else {
-            val blocks = Regex("""(?ms)(?:^|\n)\s*(?:\d+\s*\n)?(\d{1,2}:\d{2}:\d{2}[,.]\d{1,3})\s*-->\s*(\d{1,2}:\d{2}:\d{2}[,.]\d{1,3})[^\n]*\n(.*?)(?=\n\s*\n|$)""")
+            val blocks = Regex("""(?ms)(?:^|\n)\s*(?:[^\n]*\n)?(\d{1,2}:\d{2}:\d{2}[,.]\d{1,3})\s*-->\s*(\d{1,2}:\d{2}:\d{2}[,.]\d{1,3})[^\n]*\n(.*?)(?=\n\s*\n|$)""")
             blocks.findAll(source).forEach { match ->
                 add(match.groupValues[1], match.groupValues[2], match.groupValues[3])
             }
