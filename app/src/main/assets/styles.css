@@ -3499,3 +3499,43 @@ body:has(#view-live.active) > .ambient-waves {
   visibility: hidden !important;
   opacity: 0 !important;
 }
+
+
+/* SONIX TV: correct the right-side categories column only on TV layouts.
+   Give categories 25% of the browser width; let the channels column absorb
+   the reduction. Keep the preview column's existing width and behavior. */
+@media (min-width: 901px) {
+  .live-categories-col {
+    flex: 0 0 25%;
+    width: 25%;
+    min-width: 320px;
+    max-width: none;
+  }
+
+  .live-channels-col {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 260px;
+  }
+
+  .category-item {
+    min-width: 0;
+    gap: 9px;
+    padding-inline: 12px;
+  }
+
+  .category-item > span:first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .category-item .category-badge {
+    flex: 0 0 auto;
+    min-width: 3ch;
+    text-align: center;
+    white-space: nowrap;
+  }
+}
