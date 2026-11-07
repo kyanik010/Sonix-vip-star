@@ -37,6 +37,7 @@ import androidx.media3.ui.PlayerView
 import androidx.media3.ui.CaptionStyleCompat
 import android.widget.FrameLayout
 import androidx.media3.common.C
+import androidx.media3.common.text.Cue
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
@@ -87,6 +88,30 @@ class MainActivity : ComponentActivity() {
     @Volatile private var immersiveVideoFullscreen = false
     private var activeMediaUri: Uri? = null
     private var activeSubtitleFile: File? = null
+    private data class TimedSubtitleCue(val startMs: Long, val endMs: Long, val text: String)
+    private var activeSubtitleCues: List<TimedSubtitleCue> = emptyList()
+    private var lastRenderedSubtitleText: String? = null
+    private val subtitleRenderHandler = Handler(Looper.getMainLooper())
+    private val subtitleRenderRunnable = object : Runnable {
+        override fun run() {
+            val player = nativePlayer
+            if (player == null || !nativePlayerActive || activeSubtitleCues.isEmpty()) {
+                nativePlayerView?.subtitleView?.setCues(emptyList())
+                lastRenderedSubtitleText = null
+                return
+            }
+            val position = player.currentPosition.coerceAtLeast(0L)
+            val text = activeSubtitleCues.asSequence()
+                .filter { position >= it.startMs && position < it.endMs }
+                .joinToString("\n") { it.text }
+            if (text != lastRenderedSubtitleText) {
+                lastRenderedSubtitleText = text
+                val cues = if (text.isBlank()) emptyList() else listOf(Cue.Builder().setText(text).build())
+                nativePlayerView?.subtitleView?.setCues(cues)
+            }
+            subtitleRenderHandler.postDelayed(this, if (player.isPlaying) 100L else 250L)
+        }
+    }
     private val subtitleTypefaceCache = mutableMapOf<String, Typeface>()
     private val subtitleIoExecutor = Executors.newFixedThreadPool(3)
     private val codecDiagnosticsExecutor = Executors.newSingleThreadExecutor()
@@ -449,27 +474,8 @@ class MainActivity : ComponentActivity() {
         private fun attachNativePlayerListeners(player: ExoPlayer) {
             player.addListener(object : Player.Listener {
                 override fun onTracksChanged(tracks: Tracks) {
-                    if (activeSubtitleFile == null || pendingSubtitleLabel.isBlank()) return
-                    val playerNow = nativePlayer ?: return
-                    val expectedLabel = activeSubtitleFile?.nameWithoutExtension ?: return
-                    val candidate = tracks.groups.firstNotNullOfOrNull { group ->
-                        if (group.type != C.TRACK_TYPE_TEXT) return@firstNotNullOfOrNull null
-                        val index = (0 until group.length).firstOrNull { index ->
-                            group.isTrackSupported(index) &&
-                                group.getTrackFormat(index).label?.equals(expectedLabel, ignoreCase = true) == true
-                        } ?: return@firstNotNullOfOrNull null
-                        group to index
-                    } ?: return
-                    val (group, trackIndex) = candidate
-                    if (!group.isTrackSelected(trackIndex)) {
-                        playerNow.trackSelectionParameters = playerNow.trackSelectionParameters.buildUpon()
-                            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
-                            .clearOverridesOfType(C.TRACK_TYPE_TEXT)
-                            .addOverride(TrackSelectionOverride(group.mediaTrackGroup, listOf(trackIndex)))
-                            .build()
-                        return
-                    }
-                    finishSubtitleActivation(true, "")
+                    // External subtitle files are rendered as timed overlays. Never
+                    // mutate the active MediaItem or restart the playing stream here.
                 }
 
                 override fun onPlaybackStateChanged(playbackState: Int) {
@@ -781,12 +787,7 @@ class MainActivity : ComponentActivity() {
             runOnUiThread {
                 subtitleGeneration.incrementAndGet()
                 finishSubtitleActivation(false, "تم إيقاف الترجمة")
-                activeSubtitleFile = null
-                nativePlayer?.let { player ->
-                    player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
-                        .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true).build()
-                }
-                rebuildCurrentMediaItem(null)
+                clearActiveSubtitleOverlay()
             }
         }
 
@@ -1148,25 +1149,23 @@ class MainActivity : ComponentActivity() {
         }
 
         finishSubtitleActivation(false, "تم استبدال طلب الترجمة")
-        activeSubtitleFile = file
         pendingSubtitleRequestId = requestId
         pendingSubtitleLabel = label
         pendingSubtitleNotifyLocal = notify
-        nativePlayer?.let { player ->
-            player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
-                .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
-                .clearOverridesOfType(C.TRACK_TYPE_TEXT)
-                .build()
-        }
         try {
-            rebuildCurrentMediaItem(file)
-            val timeout = Runnable {
-                finishSubtitleActivation(false, "تعذر على المشغل قراءة مسار الترجمة أو تفعيله")
-            }
-            subtitleActivationTimeout = timeout
-            subtitleActivationHandler.postDelayed(timeout, 15000L)
+            val parsedCues = parseSubtitleFile(file)
+            require(parsedCues.isNotEmpty()) { "ملف الترجمة لا يحتوي على توقيتات أو نصوص قابلة للعرض" }
+            // Keep the previous subtitle visible until the replacement is valid.
+            // This only updates SubtitleView; ExoPlayer keeps its current item/position.
+            activeSubtitleFile = file
+            activeSubtitleCues = parsedCues
+            lastRenderedSubtitleText = null
+            subtitleRenderHandler.removeCallbacks(subtitleRenderRunnable)
+            nativePlayerView?.subtitleView?.setCues(emptyList())
+            subtitleRenderHandler.post(subtitleRenderRunnable)
+            finishSubtitleActivation(true, "")
         } catch (error: Exception) {
-            finishSubtitleActivation(false, error.message ?: "تعذر تطبيق الترجمة")
+            finishSubtitleActivation(false, error.message ?: "تعذر قراءة ملف الترجمة")
         }
     }
 
@@ -1188,31 +1187,64 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun rebuildCurrentMediaItem(subtitleFile: File?) {
-        val player = nativePlayer ?: return
-        val videoUri = activeMediaUri ?: return
-        val position = player.currentPosition.coerceAtLeast(0L)
-        val wasPlaying = player.playWhenReady
-        val builder = MediaItem.Builder().setUri(videoUri)
-        if (subtitleFile != null) {
-            val ext = subtitleFile.extension.lowercase()
-            val mime = when (ext) {
-                "vtt" -> "text/vtt"
-                "ssa", "ass" -> "text/x-ssa"
-                "ttml", "xml" -> "application/ttml+xml"
-                else -> "application/x-subrip"
-            }
-            val config = MediaItem.SubtitleConfiguration.Builder(Uri.fromFile(subtitleFile))
-                .setMimeType(mime)
-                .setLanguage("und")
-                .setLabel(subtitleFile.nameWithoutExtension)
-                .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
-                .build()
-            builder.setSubtitleConfigurations(listOf(config))
+    private fun clearActiveSubtitleOverlay() {
+        subtitleRenderHandler.removeCallbacks(subtitleRenderRunnable)
+        activeSubtitleFile = null
+        activeSubtitleCues = emptyList()
+        lastRenderedSubtitleText = null
+        nativePlayerView?.subtitleView?.setCues(emptyList())
+    }
+
+    private fun parseSubtitleFile(file: File): List<TimedSubtitleCue> {
+        val source = file.readText(Charsets.UTF_8).removePrefix("\uFEFF")
+        val ext = file.extension.lowercase()
+        val result = mutableListOf<TimedSubtitleCue>()
+        fun add(start: String, end: String, rawText: String) {
+            val startMs = subtitleTimeToMs(start) ?: return
+            val endMs = subtitleTimeToMs(end) ?: return
+            val clean = rawText.replace(Regex("(?i)<br\\s*/?>"), "\n")
+                .replace(Regex("<[^>]+>"), "")
+                .replace("&nbsp;", " ").replace("&amp;", "&")
+                .replace("&lt;", "<").replace("&gt;", ">")
+                .replace("&quot;", String.fromCharCode(34)).replace("&#39;", "'")
+                .replace("\\N", "\n").replace(Regex("\\{[^}]*}"), "").trim()
+            if (clean.isNotBlank() && endMs > startMs) result += TimedSubtitleCue(startMs, endMs, clean)
         }
-        player.setMediaItem(builder.build(), position)
-        player.prepare()
-        player.playWhenReady = wasPlaying
+        if (ext == "ass" || ext == "ssa") {
+            val dialogue = Regex("""Dialogue:[^,]*,([^,]+),([^,]+),[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,(.*)""")
+            source.lineSequence().forEach { line ->
+                val match = dialogue.find(line.trim()) ?: return@forEach
+                add(match.groupValues[1], match.groupValues[2], match.groupValues[3])
+            }
+        } else if (ext == "ttml" || ext == "xml") {
+            val paragraphs = Regex("""(?is)<p\\b([^>]*)>(.*?)</p>""")
+            val attribute = Regex("""([\\w:-]+)\\s*=\\s*["']([^"']+)["']""")
+            paragraphs.findAll(source).forEach { match ->
+                val attrs = attribute.findAll(match.groupValues[1]).associate { it.groupValues[1].lowercase() to it.groupValues[2] }
+                val begin = attrs["begin"] ?: return@forEach
+                val end = attrs["end"] ?: return@forEach
+                add(begin, end, match.groupValues[2])
+            }
+        } else {
+            val blocks = Regex("""(?ms)(?:^|\\n)\\s*(?:\\d+\\s*\\n)?(\\d{1,2}:\\d{2}:\\d{2}[,.]\\d{1,3})\\s*-->\\s*(\\d{1,2}:\\d{2}:\\d{2}[,.]\\d{1,3})[^\\n]*\\n(.*?)(?=\\n\\s*\\n|$)""")
+            blocks.findAll(source).forEach { match ->
+                add(match.groupValues[1], match.groupValues[2], match.groupValues[3])
+            }
+        }
+        return result.sortedBy { it.startMs }
+    }
+
+    private fun subtitleTimeToMs(raw: String): Long? {
+        val parts = raw.trim().replace(',', '.').split(':')
+        return try {
+            val seconds = when (parts.size) {
+                3 -> parts[0].toLong() * 3600 + parts[1].toLong() * 60 + parts[2].toDouble()
+                2 -> parts[0].toLong() * 60 + parts[1].toDouble()
+                1 -> parts[0].toDouble()
+                else -> return null
+            }
+            (seconds * 1000.0).toLong().takeIf { it >= 0L }
+        } catch (_: Exception) { null }
     }
 
     private fun notifyLocalSubtitleResult(success: Boolean, label: String, message: String) {
@@ -1387,8 +1419,8 @@ class MainActivity : ComponentActivity() {
         liveRecoveryAttempts = 0
         subtitleGeneration.incrementAndGet()
         finishSubtitleActivation(false, "توقف تشغيل المحتوى قبل تفعيل الترجمة")
+        clearActiveSubtitleOverlay()
         activeMediaUri = null
-        activeSubtitleFile = null
         nativePlayerActive = false
         nativePlayerPlaying = false
         nativeVideoStreamType = null
