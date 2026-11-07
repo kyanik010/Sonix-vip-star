@@ -753,9 +753,9 @@ class MainActivity : ComponentActivity() {
                     connection.readTimeout = 25000
                     connection.instanceFollowRedirects = true
                     connection.setRequestProperty("User-Agent", "SONIX-TV/1.0")
+                    connection.setRequestProperty("Accept", "text/plain,text/vtt,application/x-subrip,application/octet-stream,*/*")
                     val rawBytes = try {
                         require(connection.responseCode in 200..299) { "HTTP ${connection.responseCode}" }
-                        connection.setRequestProperty("Accept", "text/plain,text/vtt,application/x-subrip,application/octet-stream,*/*")
                         connection.inputStream.use { readBoundedBytes(it, 20 * 1024 * 1024) }
                     } finally { connection.disconnect() }
                     require(rawBytes.isNotEmpty()) { "ملف الترجمة فارغ" }
