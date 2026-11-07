@@ -90,6 +90,8 @@ class MainActivity : ComponentActivity() {
     private var activeSubtitleFile: File? = null
     private data class TimedSubtitleCue(val startMs: Long, val endMs: Long, val text: String)
     private var activeSubtitleCues: List<TimedSubtitleCue> = emptyList()
+    private var subtitleCueCursor = 0
+    private var lastSubtitlePositionMs = 0L
     private var lastRenderedSubtitleText: String? = null
     private val subtitleRenderHandler = Handler(Looper.getMainLooper())
     private val subtitleRenderRunnable = object : Runnable {
@@ -101,9 +103,24 @@ class MainActivity : ComponentActivity() {
                 return
             }
             val position = player.currentPosition.coerceAtLeast(0L)
-            val text = activeSubtitleCues.asSequence()
-                .filter { position >= it.startMs && position < it.endMs }
-                .joinToString("\n") { it.text }
+            if (position < lastSubtitlePositionMs) subtitleCueCursor = 0
+            while (subtitleCueCursor < activeSubtitleCues.size &&
+                activeSubtitleCues[subtitleCueCursor].endMs <= position) {
+                subtitleCueCursor++
+            }
+            val activeText = StringBuilder()
+            var cueIndex = subtitleCueCursor
+            while (cueIndex < activeSubtitleCues.size &&
+                activeSubtitleCues[cueIndex].startMs <= position) {
+                val cue = activeSubtitleCues[cueIndex]
+                if (position < cue.endMs) {
+                    if (activeText.isNotEmpty()) activeText.append("\n")
+                    activeText.append(cue.text)
+                }
+                cueIndex++
+            }
+            lastSubtitlePositionMs = position
+            val text = activeText.toString()
             if (text != lastRenderedSubtitleText) {
                 lastRenderedSubtitleText = text
                 val cues = if (text.isBlank()) emptyList() else listOf(Cue.Builder().setText(text).build())
@@ -476,6 +493,12 @@ class MainActivity : ComponentActivity() {
                 override fun onTracksChanged(tracks: Tracks) {
                     // External subtitle files are rendered as timed overlays. Never
                     // mutate the active MediaItem or restart the playing stream here.
+                }
+
+                override fun onCues(cueGroup: androidx.media3.common.text.CueGroup) {
+                    // Media3 can publish an empty native cue set after disabling embedded
+                    // text tracks. Re-apply our independent overlay on the next render tick.
+                    if (activeSubtitleCues.isNotEmpty()) lastRenderedSubtitleText = null
                 }
 
                 override fun onPlaybackStateChanged(playbackState: Int) {
@@ -1165,6 +1188,8 @@ class MainActivity : ComponentActivity() {
             }
             activeSubtitleFile = file
             activeSubtitleCues = parsedCues
+            subtitleCueCursor = 0
+            lastSubtitlePositionMs = 0L
             lastRenderedSubtitleText = null
             subtitleRenderHandler.removeCallbacks(subtitleRenderRunnable)
             nativePlayerView?.subtitleView?.setCues(emptyList())
@@ -1197,6 +1222,8 @@ class MainActivity : ComponentActivity() {
         subtitleRenderHandler.removeCallbacks(subtitleRenderRunnable)
         activeSubtitleFile = null
         activeSubtitleCues = emptyList()
+        subtitleCueCursor = 0
+        lastSubtitlePositionMs = 0L
         lastRenderedSubtitleText = null
         nativePlayerView?.subtitleView?.setCues(emptyList())
     }
