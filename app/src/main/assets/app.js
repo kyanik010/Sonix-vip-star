@@ -2748,8 +2748,9 @@
         ? items.find(item => String(item.id) === String(currentSelectedItem.id))
         : items[0];
       if (previewItem) {
-        const previewRow = Array.from(container.querySelectorAll('.channel-row'))
-          .find(row => String(row.dataset.itemId) === String(previewItem.id));
+        const renderedRows = Array.from(container.querySelectorAll('.channel-row'));
+        const previewRow = renderedRows.find(row =>
+          String(row.dataset.itemId) === String(previewItem.id)) || renderedRows[0];
         if (previewRow) handleItemFocusForPreview(previewRow);
       }
     }
