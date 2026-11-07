@@ -1419,10 +1419,13 @@
 
       handleBackAction() {
         if (cancelActiveCatalogSync()) return;
-        // Keep the login gate in place, but let Back open the existing exit dialog.
+        // The login screen has no previous in-app page; Back follows Android's
+        // normal behavior and closes the app instead of silently doing nothing.
         const loginScreen = document.getElementById('sonix-login-screen');
         if (loginScreen && !loginScreen.classList.contains('hidden')) {
-          openModal('modal-power');
+          if (window.AndroidBridge && typeof window.AndroidBridge.closeApp === 'function') {
+            window.AndroidBridge.closeApp();
+          }
           return;
         }
 
