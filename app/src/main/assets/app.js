@@ -1419,10 +1419,12 @@
 
       handleBackAction() {
         if (cancelActiveCatalogSync()) return;
-        // The login gate is a standalone screen, not a view. Back must not
-        // route around it or open the power dialog while credentials are entered.
+        // Keep the login gate in place, but let Back open the existing exit dialog.
         const loginScreen = document.getElementById('sonix-login-screen');
-        if (loginScreen && !loginScreen.classList.contains('hidden')) return;
+        if (loginScreen && !loginScreen.classList.contains('hidden')) {
+          openModal('modal-power');
+          return;
+        }
 
         const editingElement = document.activeElement;
         if (editingElement &&
@@ -1980,11 +1982,9 @@
         });
         loginServer.dataset.sonixChangeBound = '1';
       }
-      if (availableServers.length) {
-        setLoginMessage('');
-      } else {
-        setLoginMessage('لا يوجد سيرفر مخصص لهذا الجهاز حاليًا. أغلق التطبيق وافتحه بعد تخصيص السيرفر من لوحة التحكم.');
-      }
+      // An empty list is not a customer-facing error; keep the login message
+      // area reserved for actual credential/login errors only.
+      setLoginMessage('');
       applySonixRemoteTheme(payload.theme);
       (payload.messages || []).forEach(message => {
         const text = (message.title ? message.title + '\\n\\n' : '') + (message.body || '');
