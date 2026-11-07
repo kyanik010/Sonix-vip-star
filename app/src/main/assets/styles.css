@@ -3541,3 +3541,30 @@ body:has(#view-live.active) > .ambient-waves {
     white-space: nowrap;
   }
 }
+
+/* SONIX TV: preserve the current preview basis while explicitly allocating
+   the remaining width to categories and channels on TV-sized layouts. */
+@media (min-width: 901px) {
+  .live-categories-col {
+    flex: 0 0 32%;
+    width: 32%;
+    min-width: 360px;
+    max-width: none;
+    flex-shrink: 0;
+  }
+
+  .live-player-col {
+    flex: 0 0 28%;
+    width: 28%;
+    min-width: 260px;
+    max-width: none;
+    flex-shrink: 0;
+  }
+
+  .live-channels-col {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 220px;
+    flex-shrink: 1;
+  }
+}
