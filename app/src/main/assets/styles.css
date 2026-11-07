@@ -2411,8 +2411,8 @@
     }
     .splash-particle.p6 {
       width: 3px; height: 3px; top: 82%; left: 48%;
-      background: var(--focus-blue);
-      box-shadow: 0 0 6px var(--focus-blue);
+      background: #E8C98F;
+      box-shadow: 0 0 8px rgba(232, 201, 143, 0.75);
       animation: splashParticleFloat 3.4s ease-in-out infinite 0.3s;
     }
 
