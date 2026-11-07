@@ -2307,6 +2307,8 @@
     .sonix-login-card .sonix-brand{gap:2px}
     .sonix-login-card .sonix-title-row{font-size:clamp(1.25rem,2.8vh,1.65rem)}
     .sonix-login-card input{width:100%;height:clamp(36px,5.2vh,42px);min-height:36px;border-radius:8px;padding:0 12px;background:#0A0F14;color:#fff;border:1px solid #1E2A36;font:inherit;direction:ltr;text-align:left}
+    .sonix-login-card select{width:min(100%,300px);height:40px;min-height:40px;align-self:center;border-radius:14px;padding:0 14px;background:rgba(143,184,232,.12);color:var(--text-white);border:1px solid rgba(143,184,232,.42);font:inherit;text-align:center;text-align-last:center;box-shadow:0 5px 16px rgba(143,184,232,.08)}
+    .sonix-login-card select option{background:#111820;color:#fff}
     .tv-quick-bar{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 6px;justify-content:center}
     .tv-quick-btn{flex:1 1 auto;min-width:48px;height:32px;padding:0 8px;font-size:.78rem;font-weight:700;border-radius:6px;background:#141E28 !important;color:#8FB8E8 !important;border:1px solid #1E2A36 !important;cursor:pointer}
     .tv-quick-btn.btn-clear{color:#FF5A5A !important;background:#241418 !important}
