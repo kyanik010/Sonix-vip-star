@@ -54,7 +54,10 @@
       width: 100vw;
       height: 100vh;
       overflow: hidden;
-      background: transparent;
+      background:
+        radial-gradient(ellipse at 88% 0%, var(--focus-soft) 0%, transparent 38%),
+        radial-gradient(ellipse at 0% 100%, var(--copper-wave) 0%, transparent 42%),
+        linear-gradient(145deg, var(--bg-main-start) 0%, var(--bg-screen) 48%, var(--bg-main-end) 100%);
       display: flex;
       flex-direction: column;
     }
