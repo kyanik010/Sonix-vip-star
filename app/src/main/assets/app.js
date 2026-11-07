@@ -3,6 +3,64 @@
      * SECTION 6: UNIFIED DATA MODELS (CHANNELS, MOVIES, SERIES)
      * =========================================================================
      */
+    // =========================================================================
+    // SONIX TV: CINEMATIC WELCOME / SPLASH SCREEN CONTROLLER
+    // =========================================================================
+    let splashDismissed = false;
+    let splashAutoTimer = null;
+
+    window.isSplashActive = function() {
+      const splash = document.getElementById('sonix-splash-screen');
+      return Boolean(splash && !splash.classList.contains('hidden') && !splashDismissed);
+    };
+
+    window.dismissSplashScreen = function() {
+      if (splashDismissed) return;
+      splashDismissed = true;
+      if (splashAutoTimer) {
+        clearTimeout(splashAutoTimer);
+        splashAutoTimer = null;
+      }
+
+      const splash = document.getElementById('sonix-splash-screen');
+      if (!splash) return;
+
+      splash.classList.add('splash-fading-out');
+
+      setTimeout(() => {
+        splash.classList.add('hidden');
+        splash.style.display = 'none';
+
+        // Seamless focus handover to the active screen
+        const loginScreen = document.getElementById('sonix-login-screen');
+        if (loginScreen && !loginScreen.classList.contains('hidden')) {
+          const firstLoginField = document.getElementById('login-server') || document.getElementById('login-username');
+          if (firstLoginField && window.remoteNavigator) {
+            window.remoteNavigator.focusElement(firstLoginField);
+          }
+        } else {
+          const homeTarget = document.getElementById('card-movies') || document.querySelector('.main-card');
+          if (homeTarget && window.remoteNavigator) {
+            window.remoteNavigator.focusElement(homeTarget);
+          }
+        }
+      }, 650);
+    };
+
+    function initSplashScreen() {
+      const splash = document.getElementById('sonix-splash-screen');
+      if (!splash) return;
+
+      splash.addEventListener('click', () => {
+        window.dismissSplashScreen();
+      });
+
+      // Scheduled cinematic entrance duration: ~2.7s presentation + 0.65s fade-out ≈ 3.35s
+      splashAutoTimer = setTimeout(() => {
+        window.dismissSplashScreen();
+      }, 2700);
+    }
+
     // Mode State: 'live' | 'movies' | 'series'
     let currentAppMode = 'live';
 
@@ -1122,11 +1180,25 @@
 
       bindKeyEvents() {
         window.addEventListener('keydown', (e) => {
+          if (window.isSplashActive && window.isSplashActive()) {
+            if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape' || e.key === 'Backspace' || e.key.startsWith('Arrow')) {
+              window.dismissSplashScreen();
+            }
+            e.preventDefault();
+            return;
+          }
           this.handleKeyEvent(e);
         });
 
         // Direct fast invocation from Android MainActivity via window.handleRemoteKey
         window.handleRemoteKey = (keyName) => {
+          if (window.isSplashActive && window.isSplashActive()) {
+            if (keyName === 'Enter' || keyName === 'Back' || keyName === 'Escape' || keyName === 'MediaPlayPause' ||
+                keyName.startsWith('Arrow') || keyName === 'Down' || keyName === 'Up') {
+              window.dismissSplashScreen();
+            }
+            return;
+          }
           this.onRemoteKey(keyName);
         };
       }
@@ -1482,6 +1554,10 @@
       }
 
       handleBackAction() {
+        if (window.isSplashActive && window.isSplashActive()) {
+          window.dismissSplashScreen();
+          return;
+        }
         if (closeRemoteMessage()) return;
         if (cancelActiveCatalogSync()) return;
         // The login screen has no previous in-app page; Back follows Android's
@@ -1702,6 +1778,9 @@
       }
 
       getVisibleFocusableElements() {
+        if (window.isSplashActive && window.isSplashActive()) {
+          return [];
+        }
         const loginScreen = document.getElementById('sonix-login-screen');
         if (loginScreen && !loginScreen.classList.contains('hidden')) {
           return Array.from(loginScreen.querySelectorAll('.focusable:not([disabled])'))
@@ -3070,8 +3149,10 @@
       } catch (_) {
         activeCredentials = null;
         document.getElementById('sonix-login-screen').classList.remove('hidden');
-        const firstLoginField = document.getElementById('login-server');
-        if (firstLoginField && remoteNavigator) remoteNavigator.focusElement(firstLoginField);
+        if (!window.isSplashActive || !window.isSplashActive()) {
+          const firstLoginField = document.getElementById('login-server');
+          if (firstLoginField && remoteNavigator) remoteNavigator.focusElement(firstLoginField);
+        }
       }
 
       // Re-check at short intervals so each cached section refreshes once it reaches 24 hours.
@@ -3159,10 +3240,15 @@
       });
 
       // 12. Focus Channels Card Initially
-      const initialFocus = document.getElementById('sonix-login-screen').classList.contains('hidden')
-        ? document.getElementById('card-movies')
-        : document.getElementById('login-server');
-      if (initialFocus && remoteNavigator) {
-        remoteNavigator.focusElement(initialFocus);
+      if (!window.isSplashActive || !window.isSplashActive()) {
+        const initialFocus = document.getElementById('sonix-login-screen').classList.contains('hidden')
+          ? document.getElementById('card-movies')
+          : document.getElementById('login-server');
+        if (initialFocus && remoteNavigator) {
+          remoteNavigator.focusElement(initialFocus);
+        }
       }
+
+      // Initialize the cinematic splash screen
+      initSplashScreen();
     });
