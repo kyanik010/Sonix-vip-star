@@ -1264,21 +1264,27 @@ class MainActivity : ComponentActivity() {
         val decoded = when {
             isZip -> {
                 var selected: Pair<ByteArray, String>? = null
+                var fallback: Pair<ByteArray, String>? = null
                 ZipInputStream(ByteArrayInputStream(raw)).use { zip ->
-                    while (selected == null) {
+                    while (true) {
                         val entry = zip.nextEntry ?: break
                         if (!entry.isDirectory) {
                             val bytes = readBoundedBytes(zip, 20 * 1024 * 1024)
                             val entryExt = entry.name.substringAfterLast('.', "").lowercase()
                             if (bytes.isNotEmpty()) {
-                                val ext = if (entryExt in supported) entryExt else inferSubtitleExtension(bytes, "")
-                                if (selected == null || entryExt in supported) selected = bytes to ext
+                                val candidate = bytes to if (entryExt in supported) entryExt else inferSubtitleExtension(bytes, "")
+                                if (entryExt in supported) {
+                                    selected = candidate
+                                    zip.closeEntry()
+                                    break
+                                }
+                                if (fallback == null) fallback = candidate
                             }
                         }
                         zip.closeEntry()
                     }
                 }
-                selected ?: throw IllegalArgumentException("ملف ZIP لا يحتوي على ترجمة مدعومة")
+                selected ?: fallback ?: throw IllegalArgumentException("ملف ZIP لا يحتوي على ترجمة مدعومة")
             }
             isGzip -> {
                 val bytes = GZIPInputStream(ByteArrayInputStream(raw)).use {
