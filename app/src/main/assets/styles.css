@@ -23,6 +23,9 @@
       --success-green: #2ECC71;
       --font-family: 'Cairo', system-ui, -apple-system, 'Segoe UI', Tahoma, Arial, sans-serif;
       --surface-panel: rgba(22, 31, 42, 0.92);
+      --accent-soft: rgba(224, 165, 38, 0.16);
+      --danger-soft: rgba(224, 83, 60, 0.16);
+      --focus-soft: rgba(143, 184, 232, 0.15);
       --text-primary: #FFFFFF;
       --text-secondary: #B8C2CC;
     }
@@ -63,8 +66,9 @@
       pointer-events: none;
       opacity: 0.22;
       background-image: 
-        radial-gradient(ellipse at 50% 0%, rgba(143, 184, 232, 0.15) 0%, transparent 50%),
-        repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(31, 111, 107, 0.05) 40px, rgba(31, 111, 107, 0.05) 80px);
+        radial-gradient(ellipse at 50% 0%, var(--focus-soft) 0%, transparent 50%),
+        radial-gradient(ellipse at 100% 100%, var(--copper-wave) 0%, transparent 42%),
+        repeating-linear-gradient(45deg, transparent, transparent 40px, var(--teal-wave) 40px, var(--teal-wave) 80px);
       z-index: 0;
     }
 
@@ -2314,7 +2318,7 @@
     .sonix-login-card select option{background:var(--bg-panel);color:var(--text-white)}
     .tv-quick-bar{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 6px;justify-content:center}
     .tv-quick-btn{flex:1 1 auto;min-width:48px;height:32px;padding:0 8px;font-size:.78rem;font-weight:700;border-radius:6px;background:var(--surface-panel) !important;color:var(--focus-blue) !important;border:1px solid var(--border-panel) !important;cursor:pointer}
-    .tv-quick-btn.btn-clear{color:var(--danger-red) !important;background:#241418 !important}
+    .tv-quick-btn.btn-clear{color:var(--danger-red) !important;background:var(--danger-soft) !important}
     .tv-quick-btn:focus,.tv-quick-btn.keyboard-focused{background:var(--selected-item-bg) !important;border-color:var(--focus-blue) !important;box-shadow:0 0 0 2px var(--focus-blue) !important}
     .sonix-login-card button{min-height:38px;border:0;border-radius:8px;background:var(--accent-gold);color:#0A0F14;font:inherit;font-weight:900}
     #sonix-login-message{min-height:16px;color:var(--danger-red);font-size:.78rem;text-align:center}
