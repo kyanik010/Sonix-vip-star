@@ -2740,6 +2740,18 @@
       // Render only the first batch. Further batches are requested by actual
       // scrolling or by DPAD navigation at the end of the rendered rows.
       appendChannelRows();
+
+      // Populate the details preview immediately after a section/category/search
+      // render; focus may initially remain on the category sidebar instead.
+      const previewItem = currentSelectedItem &&
+        items.find(item => String(item.id) === String(currentSelectedItem.id))
+        ? items.find(item => String(item.id) === String(currentSelectedItem.id))
+        : items[0];
+      if (previewItem) {
+        const previewRow = Array.from(container.querySelectorAll('.channel-row'))
+          .find(row => String(row.dataset.itemId) === String(previewItem.id));
+        if (previewRow) handleItemFocusForPreview(previewRow);
+      }
     }
 
     function loadLiveEpg(item) {
