@@ -4226,3 +4226,26 @@ html[data-sonix-atmosphere="pearl-marble"] .sonix-login-card,
 html[data-sonix-atmosphere="carrara-marble"] .sonix-login-card {
   box-shadow:0 18px 48px rgba(50,60,70,.16),inset 0 1px 0 rgba(255,255,255,.8);
 }
+
+
+/* Palette-aware structural surfaces and typography */
+.home-main-panel {
+  background:linear-gradient(145deg,var(--card-glass),var(--surface-panel)) !important;
+  border-color:var(--card-border) !important;
+  box-shadow:0 18px 48px rgba(0,0,0,.26),0 0 34px var(--theme-accent-halo) !important;
+}
+.tool-btn { color:var(--text-secondary); }
+.home-clock { color:var(--text-primary); }
+.home-date { color:var(--text-secondary); }
+html[data-sonix-atmosphere="pearl-marble"] .home-clock,
+html[data-sonix-atmosphere="carrara-marble"] .home-clock {
+  text-shadow:0 1px 2px rgba(255,255,255,.72);
+}
+html[data-sonix-atmosphere="pearl-marble"] .home-main-panel,
+html[data-sonix-atmosphere="carrara-marble"] .home-main-panel {
+  box-shadow:0 16px 42px rgba(48,62,76,.12),inset 0 1px 0 rgba(255,255,255,.85) !important;
+}
+html[data-sonix-atmosphere="pearl-marble"] .tool-btn,
+html[data-sonix-atmosphere="carrara-marble"] .tool-btn {
+  box-shadow:0 5px 15px rgba(55,65,75,.10),inset 0 1px 0 rgba(255,255,255,.9);
+}
