@@ -2136,6 +2136,18 @@
       if (validColor(palette.focus)) root.style.setProperty('--focus-soft', rgba(palette.focus, 0.15));
       if (validColor(palette.accent)) root.style.setProperty('--accent-soft', rgba(palette.accent, 0.16));
       if (validColor(palette.danger)) root.style.setProperty('--danger-soft', rgba(palette.danger, 0.16));
+      const supportedAtmospheres = new Set([
+        'royal-navy', 'celestial-cyan', 'ruby-velvet', 'pearl-marble', 'emerald-palace',
+        'midnight-sapphire', 'carrara-marble', 'imperial-amethyst', 'imperial-bronze', 'black-onyx'
+      ]);
+      if (supportedAtmospheres.has(palette.atmosphere)) {
+        root.setAttribute('data-sonix-atmosphere', palette.atmosphere);
+      } else {
+        root.removeAttribute('data-sonix-atmosphere');
+      }
+      if (validColor(palette.waveOne)) root.style.setProperty('--theme-glow-one', rgba(palette.waveOne, 0.22));
+      if (validColor(palette.waveTwo)) root.style.setProperty('--theme-glow-two', rgba(palette.waveTwo, 0.19));
+      if (validColor(palette.accent)) root.style.setProperty('--theme-accent-halo', rgba(palette.accent, 0.22));
       if (typeof palette.background === 'string' && /^#[0-9a-fA-F]{6}$/.test(palette.background) &&
           window.SonixControlBridge && window.SonixControlBridge.setBackgroundColor) {
         window.SonixControlBridge.setBackgroundColor(palette.background);
