@@ -456,7 +456,7 @@
 
           <div class="delay-section-box">
             <div class="delay-header">
-              <div style="font-size:0.85rem;font-weight:800;color:#fff;">مستوى صوت القناة الخارجية</div>
+              <div style="font-size:0.85rem;font-weight:800;color:var(--text-white);">مستوى صوت القناة الخارجية</div>
               <div id="external-audio-volume-label" class="delay-value-display">100%</div>
             </div>
             <input id="external-audio-volume" class="focusable" type="range" min="0" max="100" step="1" value="100" style="width:100%;" aria-label="مستوى صوت القناة الخارجية" />
@@ -466,7 +466,7 @@
           <div class="delay-section-box">
             <div class="delay-header">
               <div>
-                <div style="font-size:0.88rem; font-weight:800; color:#fff;">المزامنة اليدوية (Audio Delay)</div>
+                <div style="font-size:0.88rem; font-weight:800; color:var(--text-white);">المزامنة اليدوية (Audio Delay)</div>
                 <div style="font-size:0.72rem; color:var(--text-muted);">تتم مزامنة مصدر الصوت المستقل يدوياً عبر موضع تشغيل مشغل Media3 الثاني</div>
               </div>
               <div id="delay-value-label" class="delay-value-display">+0 ms</div>
@@ -494,7 +494,7 @@
 
         </div>
         <div class="modal-footer">
-          <button id="btn-ext-audio-done" class="action-btn focusable" style="background:var(--selected-item-bg); border-color:var(--focus-blue); color:#fff;">
+          <button id="btn-ext-audio-done" class="action-btn focusable" style="background:var(--selected-item-bg); border-color:var(--focus-blue); color:var(--text-white);">
             إغلاق النافذة
           </button>
         </div>
@@ -525,15 +525,15 @@
               </div>
             </div>
 
-            <div style="background:#0A0F14; border:1px solid var(--border-panel); border-radius:12px; padding:12px 16px;">
+            <div style="background:var(--bg-screen); border:1px solid var(--border-panel); border-radius:12px; padding:12px 16px;">
               <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">البرنامج التالي:</div>
-              <div id="epg-next-title" style="font-size:0.95rem; font-weight:800; color:#fff; margin-top:2px;">لا تتوفر بيانات للبرنامج التالي</div>
+              <div id="epg-next-title" style="font-size:0.95rem; font-weight:800; color:var(--text-white); margin-top:2px;">لا تتوفر بيانات للبرنامج التالي</div>
               <div id="epg-next-time" style="font-size:0.78rem; color:var(--text-silver); margin-top:2px;">—</div>
             </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button id="close-epg-footer" class="action-btn focusable" style="background:var(--selected-item-bg); border-color:var(--focus-blue); color:#fff;">إغلاق</button>
+          <button id="close-epg-footer" class="action-btn focusable" style="background:var(--selected-item-bg); border-color:var(--focus-blue); color:var(--text-white);">إغلاق</button>
         </div>
       </div>
     </div>
@@ -552,19 +552,19 @@
         </div>
         <div class="modal-body">
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-            <div style="background:#0A0F14; padding:12px; border-radius:10px; border:1px solid var(--border-panel);">
+            <div style="background:var(--bg-screen); padding:12px; border-radius:10px; border:1px solid var(--border-panel);">
               <div style="font-size:0.75rem; color:var(--text-muted);">اسم المستخدم:</div>
-              <div id="profile-user-name" style="font-size:0.95rem; font-weight:800; color:#fff;">—</div>
+              <div id="profile-user-name" style="font-size:0.95rem; font-weight:800; color:var(--text-white);">—</div>
             </div>
-            <div style="background:#0A0F14; padding:12px; border-radius:10px; border:1px solid var(--border-panel);">
+            <div style="background:var(--bg-screen); padding:12px; border-radius:10px; border:1px solid var(--border-panel);">
               <div style="font-size:0.75rem; color:var(--text-muted);">حالة الاشتراك:</div>
               <div id="profile-package" style="font-size:0.95rem; font-weight:800; color:var(--accent-gold);">—</div>
             </div>
-            <div style="background:#0A0F14; padding:12px; border-radius:10px; border:1px solid var(--border-panel);">
+            <div style="background:var(--bg-screen); padding:12px; border-radius:10px; border:1px solid var(--border-panel);">
               <div style="font-size:0.75rem; color:var(--text-muted);">رقم المشترك (ID):</div>
-              <div id="profile-user-id" style="font-size:0.95rem; font-weight:800; color:#fff; direction:ltr;">—</div>
+              <div id="profile-user-id" style="font-size:0.95rem; font-weight:800; color:var(--text-white); direction:ltr;">—</div>
             </div>
-            <div style="background:#0A0F14; padding:12px; border-radius:10px; border:1px solid var(--border-panel);">
+            <div style="background:var(--bg-screen); padding:12px; border-radius:10px; border:1px solid var(--border-panel);">
               <div style="font-size:0.75rem; color:var(--text-muted);">تاريخ الانتهاء:</div>
               <div id="profile-expiry" style="font-size:0.95rem; font-weight:800; color:var(--success-green);">—</div>
             </div>
@@ -575,7 +575,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button id="close-profile-footer" class="action-btn focusable" style="background:var(--selected-item-bg); color:#fff;">تم</button>
+          <button id="close-profile-footer" class="action-btn focusable" style="background:var(--selected-item-bg); color:var(--text-white);">تم</button>
         </div>
       </div>
     </div>
@@ -667,7 +667,7 @@
           </section>
         </div>
         <div class="modal-footer">
-          <button id="close-settings-footer" class="action-btn focusable" style="background:var(--selected-item-bg); color:#fff;">إغلاق</button>
+          <button id="close-settings-footer" class="action-btn focusable" style="background:var(--selected-item-bg); color:var(--text-white);">إغلاق</button>
         </div>
       </div>
     </div>
@@ -790,7 +790,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button id="close-search-footer" class="action-btn focusable" style="background:var(--selected-item-bg); color:#fff;">إغلاق</button>
+          <button id="close-search-footer" class="action-btn focusable" style="background:var(--selected-item-bg); color:var(--text-white);">إغلاق</button>
         </div>
       </div>
     </div>
@@ -808,14 +808,14 @@
           <button id="close-power" class="modal-close-btn focusable">&times;</button>
         </div>
         <div class="modal-body" style="text-align:center;">
-          <div style="font-size:0.95rem; font-weight:700; color:#fff;">هل تريد حقاً الخروج من تطبيق SONIX TV؟</div>
+          <div style="font-size:0.95rem; font-weight:700; color:var(--text-white);">هل تريد حقاً الخروج من تطبيق SONIX TV؟</div>
           <div style="font-size:0.8rem; color:var(--text-muted); margin-top:6px;">سيتم إيقاف جميع جلسات البث المباشر والصوت الخارجي بأمان.</div>
         </div>
         <div class="modal-footer" style="justify-content:center; gap:16px;">
-          <button id="btn-confirm-exit" class="action-btn focusable" style="background:var(--danger-red); color:#fff; border:none; font-weight:800; min-width:100px;">
+          <button id="btn-confirm-exit" class="action-btn focusable" style="background:var(--danger-red); color:#FFFFFF; border:none; font-weight:800; min-width:100px;">
             نعم، خروج
           </button>
-          <button id="btn-cancel-exit" class="action-btn focusable" style="background:var(--selected-item-bg); color:#fff; min-width:100px;">
+          <button id="btn-cancel-exit" class="action-btn focusable" style="background:var(--selected-item-bg); color:var(--text-white); min-width:100px;">
             إلغاء
           </button>
         </div>
