@@ -1990,6 +1990,7 @@
       if (validColor(palette.waveOne)) root.style.setProperty('--teal-wave', rgba(palette.waveOne, 0.16));
       if (validColor(palette.waveTwo)) root.style.setProperty('--copper-wave', rgba(palette.waveTwo, 0.13));
       if (validColor(palette.focus)) root.style.setProperty('--focus-glow', rgba(palette.focus, 0.45));
+      if (validColor(palette.focus)) root.style.setProperty('--focus-soft', rgba(palette.focus, 0.15));
       if (validColor(palette.accent)) root.style.setProperty('--accent-soft', rgba(palette.accent, 0.16));
       if (validColor(palette.danger)) root.style.setProperty('--danger-soft', rgba(palette.danger, 0.16));
       if (typeof palette.background === 'string' && /^#[0-9a-fA-F]{6}$/.test(palette.background) &&
