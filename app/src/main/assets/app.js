@@ -2393,7 +2393,7 @@
               episodeTitle=episodeTitle.slice(String(item.name).length).replace(/^\\s*[-–—:|]+\\s*/,'').trim();
             }
             if(!episodeTitle || rawTitle===commonTitle || episodeTitle.toLocaleLowerCase()===normalizedSeries || /^s\d{1,2}e\d{1,3}\s*[-–—:|]*$/i.test(episodeTitle)) episodeTitle='';
-               /^s\\d{1,2}e\\d{1,3}$/i.test(episodeTitle)) episodeTitle='';
+
 
             card.setAttribute('aria-label','موسم '+season+'، الحلقة '+String(episodeNumber).padStart(2,'0')+(episodeTitle?'، '+episodeTitle:''));
 
