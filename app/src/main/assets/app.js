@@ -1423,10 +1423,16 @@
         if(tab) {
           if(direction==='left'||direction==='right') {
             const target=moveGeometrically(Array.from(modal.querySelectorAll('.series-season-tab')),direction);
-            if(target) this.focusElement(target);
+            if(target) {
+              this.focusElement(target);
+              target.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});
+            }
           } else if(direction==='down') {
             const first=modal.querySelector('.episode-card.focusable');
-            if(first) this.focusElement(first);
+            if(first) {
+              this.focusElement(first);
+              first.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});
+            }
           } else if(direction==='up') {
             const close=modal.querySelector('.modal-close-btn.focusable');
             if(close) this.focusElement(close);
@@ -1438,9 +1444,13 @@
         const target=moveGeometrically(episodes,direction);
         if(target) {
           this.focusElement(target);
+          target.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});
         } else if(direction==='up') {
           const selected=modal.querySelector('.series-season-tab[aria-selected="true"]');
-          if(selected) this.focusElement(selected);
+          if(selected) {
+            this.focusElement(selected);
+            selected.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});
+          }
         }
         return true;
       }
@@ -2348,7 +2358,7 @@
             const sec=seconds%60;
             return [h,m,sec].map(value=>String(value).padStart(2,'0')).join(':');
           }
-          return raw ? String(raw) : 'المدة غير متاحة';
+          return raw && String(raw).trim() ? String(raw).trim() : '';
         };
         const seasonLabel=season=>Number(season)===0?'حلقات خاصة':'الموسم '+season;
 
@@ -2366,6 +2376,8 @@
           seasonEpisodeCount.textContent=seasonEpisodes.length+' حلقة';
           list.replaceChildren();
 
+          const rawTitles=seasonEpisodes.map(ep=>String(ep.title || '').trim()).filter(Boolean);
+          const commonTitle=rawTitles.length && rawTitles.every(title=>title===rawTitles[0]) ? rawTitles[0] : '';
           seasonEpisodes.forEach(ep=>{
             const episodeNumber=Number(ep.episode_num || 0);
             const episodeCode='S'+String(season).padStart(2,'0')+'E'+String(episodeNumber).padStart(2,'0');
@@ -2373,7 +2385,17 @@
             card.type='button';
             card.className='episode-card focusable';
             card.setAttribute('role','listitem');
-            card.setAttribute('aria-label',episodeCode+' '+(ep.title || 'الحلقة'));
+
+            const rawTitle=String(ep.title || '').trim();
+            const normalizedSeries=String(item.name || '').trim().toLocaleLowerCase();
+            let episodeTitle=rawTitle;
+            if(normalizedSeries && episodeTitle.toLocaleLowerCase().startsWith(normalizedSeries)) {
+              episodeTitle=episodeTitle.slice(String(item.name).length).replace(/^\\s*[-–—:|]+\\s*/,'').trim();
+            }
+            if(!episodeTitle || rawTitle===commonTitle || episodeTitle.toLocaleLowerCase()===normalizedSeries ||
+               /^s\\d{1,2}e\\d{1,3}$/i.test(episodeTitle)) episodeTitle='';
+
+            card.setAttribute('aria-label','موسم '+season+'، الحلقة '+String(episodeNumber).padStart(2,'0')+(episodeTitle?'، '+episodeTitle:''));
 
             const number=document.createElement('span');
             number.className='episode-number-tile';
@@ -2381,16 +2403,23 @@
 
             const details=document.createElement('span');
             details.className='episode-details';
-            const code=document.createElement('span');
-            code.className='episode-code';
-            code.textContent=episodeCode;
-            const name=document.createElement('span');
-            name.className='episode-name';
-            name.textContent=ep.title || ('الحلقة '+(ep.episode_num || ''));
-            const duration=document.createElement('span');
-            duration.className='episode-duration';
-            duration.textContent=formatEpisodeDuration(ep);
-            details.append(code,name,duration);
+            const seasonLabelNode=document.createElement('span');
+            seasonLabelNode.className='episode-season-label';
+            seasonLabelNode.textContent=seasonLabel(season);
+            details.appendChild(seasonLabelNode);
+            if(episodeTitle) {
+              const name=document.createElement('span');
+              name.className='episode-name';
+              name.textContent=episodeTitle;
+              details.appendChild(name);
+            }
+            const durationText=formatEpisodeDuration(ep);
+            if(durationText) {
+              const duration=document.createElement('span');
+              duration.className='episode-duration';
+              duration.textContent=durationText;
+              details.appendChild(duration);
+            }
 
             const play=document.createElement('span');
             play.className='episode-play-icon';
