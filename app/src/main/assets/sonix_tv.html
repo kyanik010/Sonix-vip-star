@@ -132,7 +132,7 @@
         <div id="card-channels" class="hero-card focusable" data-group="home-cards" tabindex="0">
           <div class="hero-icon-container">
             <svg viewBox="0 0 24 24" fill="none" stroke="var(--focus-blue)" stroke-width="1.8">
-              <rect x="2" y="7" width="20" height="14" rx="3" fill="#1C2A38"/>
+              <rect x="2" y="7" width="20" height="14" rx="3" fill="var(--selected-item-bg)"/>
               <path d="M17 3l-5 4-5-4" stroke-linecap="round" stroke-linejoin="round"/>
               <circle cx="12" cy="14" r="1.5" fill="var(--accent-gold)"/>
               <path d="M8.5 11.5a5 5 0 017 0" stroke="var(--accent-gold)" stroke-linecap="round"/>
@@ -494,7 +494,7 @@
 
         </div>
         <div class="modal-footer">
-          <button id="btn-ext-audio-done" class="action-btn focusable" style="background:#1C2A38; border-color:var(--focus-blue); color:#fff;">
+          <button id="btn-ext-audio-done" class="action-btn focusable" style="background:var(--selected-item-bg); border-color:var(--focus-blue); color:#fff;">
             إغلاق النافذة
           </button>
         </div>
@@ -533,7 +533,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button id="close-epg-footer" class="action-btn focusable" style="background:#1C2A38; border-color:var(--focus-blue); color:#fff;">إغلاق</button>
+          <button id="close-epg-footer" class="action-btn focusable" style="background:var(--selected-item-bg); border-color:var(--focus-blue); color:#fff;">إغلاق</button>
         </div>
       </div>
     </div>
@@ -569,13 +569,13 @@
               <div id="profile-expiry" style="font-size:0.95rem; font-weight:800; color:var(--success-green);">—</div>
             </div>
           </div>
-          <div style="background:#151F2A; padding:12px; border-radius:10px; border:1px solid var(--border-panel); display:flex; justify-content:space-between; align-items:center;">
+          <div style="background:var(--surface-panel); padding:12px; border-radius:10px; border:1px solid var(--border-panel); display:flex; justify-content:space-between; align-items:center;">
             <span style="font-size:0.85rem;">حالة اتصال الخادم (Server Ping):</span>
             <span id="profile-server-status" style="font-size:0.85rem; font-weight:800; color:var(--text-muted);">—</span>
           </div>
         </div>
         <div class="modal-footer">
-          <button id="close-profile-footer" class="action-btn focusable" style="background:#1C2A38; color:#fff;">تم</button>
+          <button id="close-profile-footer" class="action-btn focusable" style="background:var(--selected-item-bg); color:#fff;">تم</button>
         </div>
       </div>
     </div>
@@ -667,7 +667,7 @@
           </section>
         </div>
         <div class="modal-footer">
-          <button id="close-settings-footer" class="action-btn focusable" style="background:#1C2A38; color:#fff;">إغلاق</button>
+          <button id="close-settings-footer" class="action-btn focusable" style="background:var(--selected-item-bg); color:#fff;">إغلاق</button>
         </div>
       </div>
     </div>
@@ -739,7 +739,7 @@
             </label>
             <label class="settings-row" for="subtitle-color"><span><strong>لون الخط</strong></span>
               <select id="subtitle-color" class="settings-select focusable">
-                <option value="#FFFFFF">أبيض</option><option value="#FFFF00">أصفر</option><option value="#00FFFF">سماوي</option><option value="#00FF66">أخضر</option>
+                <option value="var(--text-white)FFF">أبيض</option><option value="var(--text-white)F00">أصفر</option><option value="#00FFFF">سماوي</option><option value="#00FF66">أخضر</option>
               </select>
             </label>
             <label class="settings-row" for="subtitle-background"><span><strong>خلفية الترجمة</strong></span>
@@ -790,7 +790,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button id="close-search-footer" class="action-btn focusable" style="background:#1C2A38; color:#fff;">إغلاق</button>
+          <button id="close-search-footer" class="action-btn focusable" style="background:var(--selected-item-bg); color:#fff;">إغلاق</button>
         </div>
       </div>
     </div>
@@ -815,7 +815,7 @@
           <button id="btn-confirm-exit" class="action-btn focusable" style="background:var(--danger-red); color:#fff; border:none; font-weight:800; min-width:100px;">
             نعم، خروج
           </button>
-          <button id="btn-cancel-exit" class="action-btn focusable" style="background:#1C2A38; color:#fff; min-width:100px;">
+          <button id="btn-cancel-exit" class="action-btn focusable" style="background:var(--selected-item-bg); color:#fff; min-width:100px;">
             إلغاء
           </button>
         </div>
