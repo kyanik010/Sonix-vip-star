@@ -1206,7 +1206,7 @@ class MainActivity : ComponentActivity() {
                 .replace(Regex("<[^>]+>"), "")
                 .replace("&nbsp;", " ").replace("&amp;", "&")
                 .replace("&lt;", "<").replace("&gt;", ">")
-                .replace("&quot;", String.fromCharCode(34)).replace("&#39;", "'")
+                .replace("&quot;", "\"").replace("&#39;", "'")
                 .replace("\\N", "\n").replace(Regex("\\{[^}]*}"), "").trim()
             if (clean.isNotBlank() && endMs > startMs) result += TimedSubtitleCue(startMs, endMs, clean)
         }
@@ -1217,8 +1217,8 @@ class MainActivity : ComponentActivity() {
                 add(match.groupValues[1], match.groupValues[2], match.groupValues[3])
             }
         } else if (ext == "ttml" || ext == "xml") {
-            val paragraphs = Regex("""(?is)<p\\b([^>]*)>(.*?)</p>""")
-            val attribute = Regex("""([\\w:-]+)\\s*=\\s*["']([^"']+)["']""")
+            val paragraphs = Regex("""(?is)<p\b([^>]*)>(.*?)</p>""")
+            val attribute = Regex("""([\w:-]+)\s*=\s*["']([^"']+)["']""")
             paragraphs.findAll(source).forEach { match ->
                 val attrs = attribute.findAll(match.groupValues[1]).associate { it.groupValues[1].lowercase() to it.groupValues[2] }
                 val begin = attrs["begin"] ?: return@forEach
@@ -1226,7 +1226,7 @@ class MainActivity : ComponentActivity() {
                 add(begin, end, match.groupValues[2])
             }
         } else {
-            val blocks = Regex("""(?ms)(?:^|\\n)\\s*(?:\\d+\\s*\\n)?(\\d{1,2}:\\d{2}:\\d{2}[,.]\\d{1,3})\\s*-->\\s*(\\d{1,2}:\\d{2}:\\d{2}[,.]\\d{1,3})[^\\n]*\\n(.*?)(?=\\n\\s*\\n|$)""")
+            val blocks = Regex("""(?ms)(?:^|\n)\s*(?:\d+\s*\n)?(\d{1,2}:\d{2}:\d{2}[,.]\d{1,3})\s*-->\s*(\d{1,2}:\d{2}:\d{2}[,.]\d{1,3})[^\n]*\n(.*?)(?=\n\s*\n|$)""")
             blocks.findAll(source).forEach { match ->
                 add(match.groupValues[1], match.groupValues[2], match.groupValues[3])
             }
