@@ -55,10 +55,10 @@
         window.dismissSplashScreen();
       });
 
-      // Scheduled cinematic entrance duration: ~2.7s presentation + 0.65s fade-out ≈ 3.35s
+      // Keep the welcome screen visible for about 6 seconds including the 650ms fade-out.
       splashAutoTimer = setTimeout(() => {
         window.dismissSplashScreen();
-      }, 2700);
+      }, 5350);
     }
 
     // Mode State: 'live' | 'movies' | 'series'
