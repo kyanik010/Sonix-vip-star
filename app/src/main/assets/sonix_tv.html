@@ -14,7 +14,7 @@
 
   <section id="sonix-login-screen" class="hidden" aria-label="تسجيل الدخول">
     <div class="sonix-login-card">
-      <div class="sonix-brand" style="align-items:center"><div class="sonix-title-row"><span class="sonix-text">SONIX</span><span class="tv-text">TV</span></div><span class="stream-subtitle">SONIX TV</span></div>
+      <div class="sonix-brand sonix-brand-login" style="align-items:center"><img class="sonix-brand-image" src="sonix-logo-horizontal.png" alt="SONIX TV"></div>
       <select id="login-server" class="focusable" aria-label="اختار السيرفر" disabled><option value="" selected>اختار السيرفر</option></select>
       <input id="login-username" class="focusable" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="اسم المستخدم">
       <input id="login-password" class="focusable" type="password" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="كلمة المرور">
@@ -38,12 +38,8 @@
       <div class="home-top-bar">
         
         <!-- Top Right: Brand Logo -->
-        <div class="sonix-brand">
-          <div class="sonix-title-row">
-            <span class="sonix-text">SONIX</span>
-            <span class="tv-text">TV</span>
-          </div>
-          <span class="stream-subtitle">STREAM</span>
+        <div class="sonix-brand sonix-brand-home">
+          <img class="sonix-brand-image" src="sonix-logo-horizontal.png" alt="SONIX TV">
         </div>
 
         <!-- Center: Arabic-Indic Clock -->
@@ -229,7 +225,7 @@
         <!-- 1. Mini Sidebar (~4%) -->
         <div class="live-sidebar">
           <div class="sidebar-top">
-            <div class="sidebar-mini-logo">S</div>
+            <div class="sidebar-mini-logo"><img src="sonix-logo-square.jpg" alt="SONIX"></div>
             <!-- 1. Live TV -->
             <button id="side-nav-live" class="sidebar-nav-item active focusable" title="البث المباشر (قنوات)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
