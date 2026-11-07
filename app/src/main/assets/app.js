@@ -1955,27 +1955,41 @@
     function applySonixRemoteTheme(theme) {
       if (!theme || !theme.palette) return;
       const palette = theme.palette;
+      const root = document.documentElement;
+      const validColor = value => typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value);
+      const rgba = (hex, alpha) => {
+        const value = hex.slice(1);
+        return 'rgba(' + parseInt(value.slice(0, 2), 16) + ', ' +
+          parseInt(value.slice(2, 4), 16) + ', ' + parseInt(value.slice(4, 6), 16) + ', ' + alpha + ')';
+      };
       const cssMap = {
         accent: ['--accent-gold'],
-        background: ['--bg-screen', '--bg-main-start', '--bg-main-end'],
-        panel: ['--bg-panel', '--card-glass', '--card-glass-hover'],
+        background: ['--bg-screen'],
+        backgroundTop: ['--bg-main-start'],
+        backgroundBottom: ['--bg-main-end'],
+        panel: ['--bg-panel'],
+        surface: ['--surface-panel'],
+        selected: ['--selected-item-bg'],
+        border: ['--border-panel'],
         focus: ['--focus-blue'],
         danger: ['--danger-red'],
-        success: ['--success-green']
+        success: ['--success-green'],
+        text: ['--text-white', '--text-primary'],
+        textSecondary: ['--text-silver', '--text-secondary'],
+        muted: ['--text-muted']
       };
       Object.entries(cssMap).forEach(([key, variables]) => {
         const value = palette[key];
-        if (typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value)) {
-          variables.forEach(variable => document.documentElement.style.setProperty(variable, value));
-          if (key === 'focus') {
-            const hex = value.slice(1);
-            const red = parseInt(hex.slice(0, 2), 16);
-            const green = parseInt(hex.slice(2, 4), 16);
-            const blue = parseInt(hex.slice(4, 6), 16);
-            document.documentElement.style.setProperty('--focus-glow', 'rgba(' + red + ', ' + green + ', ' + blue + ', 0.45)');
-          }
-        }
+        if (validColor(value)) variables.forEach(variable => root.style.setProperty(variable, value));
       });
+      if (validColor(palette.card)) {
+        root.style.setProperty('--card-glass', rgba(palette.card, 0.82));
+        root.style.setProperty('--card-glass-hover', rgba(palette.card, 0.94));
+      }
+      if (validColor(palette.border)) root.style.setProperty('--card-border', rgba(palette.border, 0.30));
+      if (validColor(palette.waveOne)) root.style.setProperty('--teal-wave', rgba(palette.waveOne, 0.16));
+      if (validColor(palette.waveTwo)) root.style.setProperty('--copper-wave', rgba(palette.waveTwo, 0.13));
+      if (validColor(palette.focus)) root.style.setProperty('--focus-glow', rgba(palette.focus, 0.45));
       if (typeof palette.background === 'string' && /^#[0-9a-fA-F]{6}$/.test(palette.background) &&
           window.SonixControlBridge && window.SonixControlBridge.setBackgroundColor) {
         window.SonixControlBridge.setBackgroundColor(palette.background);
