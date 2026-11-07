@@ -2390,7 +2390,7 @@
             const normalizedSeries=String(item.name || '').trim().toLocaleLowerCase();
             let episodeTitle=rawTitle;
             if(normalizedSeries && episodeTitle.toLocaleLowerCase().startsWith(normalizedSeries)) {
-              episodeTitle=episodeTitle.slice(String(item.name).length).replace(/^\\s*[-–—:|]+\\s*/,'').trim();
+              episodeTitle=episodeTitle.slice(String(item.name).length).replace(/^\s*[-–—:|]+\s*/,'').trim();
             }
             if(!episodeTitle || rawTitle===commonTitle || episodeTitle.toLocaleLowerCase()===normalizedSeries || /^s\d{1,2}e\d{1,3}\s*[-–—:|]*$/i.test(episodeTitle)) episodeTitle='';
 
