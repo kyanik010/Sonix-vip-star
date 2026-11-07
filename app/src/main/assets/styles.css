@@ -2324,110 +2324,269 @@
     #sonix-login-message{min-height:16px;color:var(--danger-red);font-size:.78rem;text-align:center}
     .provider-logo{width:30px;height:30px;object-fit:contain;border-radius:5px}
   
-    /* Series episodes: one compact column for each season. */
+    /* SONIX series browser: select a season, then browse clear episode cards. */
+    #series-episodes-modal { padding:clamp(10px,2.5vw,28px); }
     #series-episodes-modal .modal-window {
-      width:min(96vw,1000px);
-      max-height:85vh;
+      width:min(94vw,1120px);
+      max-height:min(90vh,920px);
+      border:1px solid var(--border-panel);
+      border-radius:22px;
+      background:linear-gradient(145deg,var(--bg-panel),var(--bg-screen));
+      box-shadow:0 26px 80px rgba(0,0,0,.58);
     }
-    #series-episodes-list {
-      max-height:55vh;
-      overflow-y:auto;
-      overflow-x:hidden;
-      overscroll-behavior:contain;
-      -webkit-overflow-scrolling:touch;
-      direction:rtl;
-      display:grid;
-      grid-template-columns:repeat(var(--season-count,1),minmax(0,1fr));
-      align-items:start;
-      gap:8px;
-      padding:10px;
+    #series-episodes-modal .modal-header {
+      min-height:68px;
+      padding:14px 22px;
+      background:linear-gradient(110deg,var(--surface-panel),var(--bg-panel));
     }
-    #series-episodes-list .series-season-column {
+    #series-episodes-modal .modal-title {
       display:flex;
       flex-direction:column;
-      align-items:stretch;
-      gap:6px;
+      align-items:flex-start;
+      gap:3px;
       min-width:0;
     }
-    #series-episodes-list .series-season-heading {
-      padding:7px 2px;
-      color:var(--accent-gold);
-      font-weight:800;
-      font-size:clamp(9px,1.15vw,13px);
-      line-height:1.35;
-      text-align:center;
-      white-space:nowrap;
-      border-bottom:1px solid var(--border-panel);
+    .series-modal-title-label {
+      color:var(--text-muted);
+      font-size:.72rem;
+      font-weight:700;
     }
-    #series-episodes-list .episode-card {
-      direction:rtl;
+    .series-modal-series-title {
+      max-width:min(70vw,760px);
+      overflow:hidden;
+      color:var(--text-white);
+      font-size:clamp(1rem,2vw,1.35rem);
+      font-weight:900;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .series-modal-meta {
       display:flex;
       align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:11px 20px 8px;
+      color:var(--text-secondary);
+      font-size:.78rem;
+    }
+    #series-total-episode-count {
+      color:var(--accent-gold);
+      font-weight:800;
+      white-space:nowrap;
+    }
+    .series-season-tabs {
+      display:flex;
+      flex-direction:row;
+      align-items:stretch;
+      gap:10px;
+      padding:8px 18px 14px;
+      overflow-x:auto;
+      overflow-y:hidden;
+      direction:rtl;
+      border-bottom:1px solid var(--border-panel);
+      overscroll-behavior-x:contain;
+      scrollbar-width:thin;
+      scrollbar-color:var(--accent-gold) transparent;
+    }
+    .series-season-tab {
+      appearance:none;
+      -webkit-appearance:none;
+      display:flex;
+      flex:0 0 clamp(112px,13vw,158px);
+      flex-direction:column;
+      align-items:flex-start;
       justify-content:center;
+      gap:4px;
+      min-width:0;
+      min-height:76px;
+      padding:10px 13px;
+      border:1px solid var(--border-panel);
+      border-radius:14px;
+      background:linear-gradient(145deg,var(--surface-panel),var(--bg-panel));
+      color:var(--text-white);
+      text-align:right;
+      cursor:pointer;
+      transition:background .16s ease,border-color .16s ease,transform .16s ease,box-shadow .16s ease;
+    }
+    .series-season-tab-number {
+      color:var(--accent-gold);
+      font-size:1.12rem;
+      font-weight:900;
+      line-height:1;
+    }
+    .series-season-tab-label {
+      overflow:hidden;
+      max-width:100%;
+      font-size:.78rem;
+      font-weight:800;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .series-season-tab-count {
+      color:var(--text-muted);
+      font-size:.68rem;
+      font-weight:600;
+    }
+    .series-season-tab.active,
+    .series-season-tab[aria-selected="true"] {
+      border-color:var(--accent-gold);
+      background:linear-gradient(145deg,var(--selected-item-bg),var(--surface-panel));
+      box-shadow:inset 0 0 0 1px var(--accent-gold),0 7px 20px rgba(0,0,0,.2);
+    }
+    .series-season-tab:focus,
+    .series-season-tab:focus-visible {
+      outline:3px solid var(--focus-blue);
+      outline-offset:2px;
+      border-color:var(--focus-blue);
+    }
+    .series-episodes-section-heading {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:13px 20px 2px;
+    }
+    #series-selected-season-title {
+      color:var(--text-white);
+      font-size:1rem;
+      font-weight:900;
+    }
+    #series-season-episode-count {
+      color:var(--text-muted);
+      font-size:.75rem;
+      font-weight:700;
+    }
+    #series-episodes-list.series-episodes-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr));
+      align-content:start;
+      align-items:stretch;
+      gap:12px;
+      max-height:48vh;
+      min-height:150px;
+      padding:14px 18px 20px;
+      overflow-x:hidden;
+      overflow-y:auto;
+      direction:rtl;
+      overscroll-behavior:contain;
+      -webkit-overflow-scrolling:touch;
+      scrollbar-width:thin;
+      scrollbar-color:var(--accent-gold) transparent;
+    }
+    #series-episodes-list .episode-card {
+      appearance:none;
+      -webkit-appearance:none;
+      display:flex;
+      flex-direction:row;
+      align-items:center;
+      justify-content:flex-start;
+      gap:12px;
       width:100%;
       min-width:0;
-      min-height:38px;
-      padding:5px 3px;
+      min-height:92px;
+      padding:12px;
       border:1px solid var(--border-panel);
-      border-radius:7px;
-      background:var(--bg-panel);
-      color:inherit;
-      text-align:center;
+      border-radius:15px;
+      background:linear-gradient(135deg,var(--surface-panel),var(--bg-panel));
+      color:var(--text-white);
+      text-align:right;
       cursor:pointer;
-      flex:0 0 auto;
-      transition:border-color .15s ease, background .15s ease;
+      transition:transform .16s ease,border-color .16s ease,background .16s ease,box-shadow .16s ease;
     }
     #series-episodes-list .episode-card:focus,
     #series-episodes-list .episode-card:focus-visible {
-      outline:2px solid var(--accent-gold);
-      outline-offset:1px;
+      outline:3px solid var(--focus-blue);
+      outline-offset:2px;
+      border-color:var(--focus-blue);
+      background:var(--selected-item-bg);
+      box-shadow:0 0 20px var(--focus-glow);
     }
-    #series-episodes-list .episode-card:active {
-      background:var(--bg-main-end);
+    #series-episodes-list .episode-card:active { transform:scale(.985); }
+    .episode-number-tile {
+      display:flex;
+      flex:0 0 52px;
+      align-items:center;
+      justify-content:center;
+      width:52px;
+      height:52px;
+      border:1px solid rgba(212,175,90,.35);
+      border-radius:13px;
+      background:var(--accent-soft);
+      color:var(--accent-gold);
+      font-size:1.22rem;
+      font-weight:900;
+      font-variant-numeric:tabular-nums;
     }
     #series-episodes-list .episode-details {
       display:flex;
       flex:1 1 auto;
       flex-direction:column;
-      align-items:center;
+      align-items:flex-start;
       justify-content:center;
-      gap:3px;
+      gap:5px;
       min-width:0;
-      width:100%;
       overflow:hidden;
     }
     #series-episodes-list .episode-code {
       color:var(--accent-gold);
-      font-size:clamp(8px,1vw,11px);
-      font-weight:800;
-      letter-spacing:0;
-      white-space:nowrap;
+      font-size:.68rem;
+      font-weight:900;
       direction:ltr;
+      white-space:nowrap;
     }
     #series-episodes-list .episode-name {
-      color:var(--text-primary,var(--text-white));
-      font-size:clamp(8px,.95vw,11px);
-      font-weight:600;
-      line-height:1.35;
-      overflow:hidden;
       display:-webkit-box;
+      max-width:100%;
+      overflow:hidden;
+      color:var(--text-white);
+      font-size:.88rem;
+      font-weight:800;
+      line-height:1.45;
+      overflow-wrap:anywhere;
       -webkit-line-clamp:2;
       -webkit-box-orient:vertical;
-      overflow-wrap:anywhere;
-      max-width:100%;
     }
     #series-episodes-list .episode-duration {
-      color:var(--text-secondary,var(--text-muted));
-      font-size:clamp(7px,.8vw,9px);
+      color:var(--text-muted);
+      font-size:.68rem;
       direction:ltr;
-      text-align:center;
+      text-align:right;
       white-space:nowrap;
     }
-    @media (max-width:420px) {
-      #series-episodes-list { gap:5px; padding:7px; }
-      #series-episodes-list .series-season-column { gap:4px; }
-      #series-episodes-list .episode-card { min-height:34px; padding:4px 2px; }
-      #series-episodes-list .series-season-heading { padding:6px 1px; }
+    .episode-play-icon {
+      display:flex;
+      flex:0 0 30px;
+      align-items:center;
+      justify-content:center;
+      width:30px;
+      height:30px;
+      border-radius:50%;
+      background:var(--accent-soft);
+      color:var(--accent-gold);
+      font-size:.72rem;
+      opacity:.9;
+    }
+    #series-episodes-modal .modal-footer { min-height:54px; }
+    @media (max-width:600px) {
+      #series-episodes-modal { padding:8px; }
+      #series-episodes-modal .modal-window { width:96vw; max-height:92vh; border-radius:17px; }
+      #series-episodes-modal .modal-header { min-height:58px; padding:10px 13px; }
+      .series-modal-meta { padding:9px 13px 6px; font-size:.7rem; }
+      .series-season-tabs { gap:7px; padding:7px 12px 11px; }
+      .series-season-tab { flex-basis:108px; min-height:68px; padding:8px 10px; }
+      .series-episodes-section-heading { padding:11px 13px 2px; }
+      #series-episodes-list.series-episodes-grid {
+        grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));
+        gap:9px;
+        max-height:52vh;
+        padding:11px 12px 15px;
+      }
+      #series-episodes-list .episode-card { min-height:82px; padding:10px; gap:9px; }
+      .episode-number-tile { flex-basis:44px; width:44px; height:44px; font-size:1.05rem; }
+      #series-episodes-list .episode-name { font-size:.82rem; }
+    }
+    @media (max-width:380px) {
+      #series-episodes-list.series-episodes-grid { grid-template-columns:1fr; }
     }
 
 /* Compact external-audio dialog: readable without covering the whole display. */
