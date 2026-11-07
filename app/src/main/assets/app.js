@@ -1393,12 +1393,66 @@
         openModal('modal-settings');
       }
 
+      handleSeriesModalNavigation(e, modal) {
+        const current=document.activeElement;
+        const tab=current.closest && current.closest('.series-season-tab');
+        const episode=current.closest && current.closest('.episode-card');
+        if(!tab && !episode) return false;
+
+        const directionMap={
+          ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down',
+          Left:'left',Right:'right',Up:'up',Down:'down'
+        };
+        const direction=directionMap[e.key];
+        if(!direction) return false;
+        e.preventDefault();
+
+        const moveGeometrically=(items,dir)=>{
+          const rect=current.getBoundingClientRect();
+          const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
+          return items.filter(target=>target!==current && target.getClientRects().length>0)
+            .map(target=>{
+              const r=target.getBoundingClientRect(), x=r.left+r.width/2, y=r.top+r.height/2;
+              const primary=dir==='left'?cx-x:dir==='right'?x-cx:dir==='up'?cy-y:y-cy;
+              if(primary<=0) return null;
+              const cross=(dir==='left'||dir==='right')?Math.abs(y-cy):Math.abs(x-cx);
+              return {target,score:primary+cross*1.65};
+            }).filter(Boolean).sort((a,b)=>a.score-b.score)[0]?.target || null;
+        };
+
+        if(tab) {
+          if(direction==='left'||direction==='right') {
+            const target=moveGeometrically(Array.from(modal.querySelectorAll('.series-season-tab')),direction);
+            if(target) this.focusElement(target);
+          } else if(direction==='down') {
+            const first=modal.querySelector('.episode-card.focusable');
+            if(first) this.focusElement(first);
+          } else if(direction==='up') {
+            const close=modal.querySelector('.modal-close-btn.focusable');
+            if(close) this.focusElement(close);
+          }
+          return true;
+        }
+
+        const episodes=Array.from(modal.querySelectorAll('.episode-card.focusable'));
+        const target=moveGeometrically(episodes,direction);
+        if(target) {
+          this.focusElement(target);
+        } else if(direction==='up') {
+          const selected=modal.querySelector('.series-season-tab[aria-selected="true"]');
+          if(selected) this.focusElement(selected);
+        }
+        return true;
+      }
+
       handleModalKey(e, modal) {
         if (e.key === 'Escape' || e.key === 'Backspace' || e.key === 'Back') {
           e.preventDefault();
           closeAllModals();
           return;
         }
+
+        if (modal.id === 'series-episodes-modal' && this.handleSeriesModalNavigation(e, modal)) return;
 
         const focusables = Array.from(modal.querySelectorAll('.focusable:not([disabled])'));
         if (!focusables.length) return;
@@ -2268,14 +2322,25 @@
       try {
         const data=parseNative(window.XtreamBridge.seriesInfo(item.seriesId));
         const episodes=data.episodes || {};
+        const tabs=document.getElementById('series-season-tabs');
         const list=document.getElementById('series-episodes-list');
-        list.innerHTML='';
-        const seasonKeys=Object.keys(episodes).sort((a,b)=>Number(a)-Number(b));
-        list.style.setProperty('--season-count',Math.max(seasonKeys.length,1));
+        const seriesTitle=document.getElementById('series-modal-series-title');
+        const selectedSeasonTitle=document.getElementById('series-selected-season-title');
+        const seasonEpisodeCount=document.getElementById('series-season-episode-count');
+        const totalEpisodeCount=document.getElementById('series-total-episode-count');
+        tabs.replaceChildren();
+        list.replaceChildren();
+
+        const seasonKeys=Object.keys(episodes)
+          .filter(key=>Array.isArray(episodes[key]) && episodes[key].length)
+          .sort((a,b)=>Number(a)-Number(b));
+        const totalEpisodes=seasonKeys.reduce((total,key)=>total+episodes[key].length,0);
+        if(!seasonKeys.length || !totalEpisodes) throw new Error('لا توجد حلقات متاحة لهذا المسلسل');
+
         const formatEpisodeDuration=(episode)=>{
           const info=episode.info || {};
           const raw=info.duration || episode.duration || '';
-          if(raw && /^\d{1,2}:\d{2}:\d{2}$/.test(String(raw))) return String(raw);
+          if(raw && /^\\d{1,2}:\\d{2}:\\d{2}$/.test(String(raw))) return String(raw);
           const seconds=Number(info.duration_secs || episode.duration_secs || 0);
           if(seconds>0) {
             const h=Math.floor(seconds/3600);
@@ -2285,15 +2350,23 @@
           }
           return raw ? String(raw) : 'المدة غير متاحة';
         };
-        seasonKeys.forEach(season=>{
-          const seasonColumn=document.createElement('section');
-          seasonColumn.className='series-season-column';
-          seasonColumn.setAttribute('aria-label','الموسم '+season);
-          const heading=document.createElement('div');
-          heading.className='series-season-heading';
-          heading.textContent='الموسم ' + season;
-          seasonColumn.appendChild(heading);
-          (episodes[season] || []).forEach(ep=>{
+        const seasonLabel=season=>Number(season)===0?'حلقات خاصة':'الموسم '+season;
+
+        seriesTitle.textContent=item.name || 'المسلسل';
+        totalEpisodeCount.textContent=totalEpisodes+' حلقة · '+seasonKeys.length+' مواسم';
+
+        const selectSeason=(season)=>{
+          const seasonEpisodes=episodes[season] || [];
+          tabs.querySelectorAll('.series-season-tab').forEach(tab=>{
+            const selected=tab.dataset.season===String(season);
+            tab.classList.toggle('active',selected);
+            tab.setAttribute('aria-selected',selected?'true':'false');
+          });
+          selectedSeasonTitle.textContent=seasonLabel(season);
+          seasonEpisodeCount.textContent=seasonEpisodes.length+' حلقة';
+          list.replaceChildren();
+
+          seasonEpisodes.forEach(ep=>{
             const episodeNumber=Number(ep.episode_num || 0);
             const episodeCode='S'+String(season).padStart(2,'0')+'E'+String(episodeNumber).padStart(2,'0');
             const card=document.createElement('button');
@@ -2301,6 +2374,11 @@
             card.className='episode-card focusable';
             card.setAttribute('role','listitem');
             card.setAttribute('aria-label',episodeCode+' '+(ep.title || 'الحلقة'));
+
+            const number=document.createElement('span');
+            number.className='episode-number-tile';
+            number.textContent=String(episodeNumber || '').padStart(2,'0');
+
             const details=document.createElement('span');
             details.className='episode-details';
             const code=document.createElement('span');
@@ -2313,7 +2391,12 @@
             duration.className='episode-duration';
             duration.textContent=formatEpisodeDuration(ep);
             details.append(code,name,duration);
-            card.appendChild(details);
+
+            const play=document.createElement('span');
+            play.className='episode-play-icon';
+            play.setAttribute('aria-hidden','true');
+            play.textContent='▶';
+            card.append(number,details,play);
             card.addEventListener('click',()=>{
               const ext=ep.container_extension || 'mp4';
               closeAllModals();
@@ -2322,12 +2405,40 @@
                 subtitleSeason:Number(season),subtitleEpisode:episodeNumber,
                 streamDescriptor:{type:'series',id:String(ep.id),ext:ext},streamUrl:'native://stream'});
             });
-            seasonColumn.appendChild(card);
+            list.appendChild(card);
           });
-          list.appendChild(seasonColumn);
+        };
+
+        seasonKeys.forEach((season,index)=>{
+          const seasonEpisodes=episodes[season] || [];
+          const tab=document.createElement('button');
+          tab.type='button';
+          tab.className='series-season-tab focusable';
+          tab.dataset.season=String(season);
+          tab.setAttribute('role','tab');
+          tab.setAttribute('aria-controls','series-episodes-list');
+          tab.setAttribute('aria-selected',index===0?'true':'false');
+
+          const number=document.createElement('span');
+          number.className='series-season-tab-number';
+          number.textContent=Number(season)===0?'★':String(season).padStart(2,'0');
+          const label=document.createElement('span');
+          label.className='series-season-tab-label';
+          label.textContent=seasonLabel(season);
+          const count=document.createElement('span');
+          count.className='series-season-tab-count';
+          count.textContent=seasonEpisodes.length+' حلقة';
+          tab.append(number,label,count);
+          tab.addEventListener('click',()=>selectSeason(season));
+          tabs.appendChild(tab);
         });
-        if(!list.querySelector('.episode-card')) throw new Error('لا توجد حلقات متاحة لهذا المسلسل');
-        document.getElementById('series-episodes-modal').classList.add('active');
+
+        selectSeason(seasonKeys[0]);
+        const modal=document.getElementById('series-episodes-modal');
+        modal.setAttribute('aria-hidden','false');
+        modal.classList.add('active');
+        const firstTab=tabs.querySelector('.series-season-tab');
+        if(firstTab && remoteNavigator) remoteNavigator.focusElement(firstTab);
       } catch(error) { showToast(error.message || 'تعذر تحميل الحلقات'); }
     }
     function refreshXtreamContent(options = {}) {
