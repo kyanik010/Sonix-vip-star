@@ -763,10 +763,25 @@
       </div>
     </div>
 
-    <div id="series-episodes-modal" class="modal-backdrop">
-      <div class="modal-window">
-        <div class="modal-header"><div class="modal-title">مواسم وحلقات المسلسل</div><button class="modal-close-btn focusable" onclick="closeAllModals()">&times;</button></div>
-        <div id="series-episodes-list" class="modal-body" role="list" aria-label="حلقات المسلسل"></div>
+    <div id="series-episodes-modal" class="modal-backdrop" aria-hidden="true">
+      <div class="modal-window" role="dialog" aria-modal="true" aria-label="مواسم وحلقات المسلسل">
+        <div class="modal-header">
+          <div class="modal-title">
+            <span class="series-modal-title-label">تشغيل الحلقات</span>
+            <span id="series-modal-series-title" class="series-modal-series-title">المسلسل</span>
+          </div>
+          <button class="modal-close-btn focusable" aria-label="إغلاق" onclick="closeAllModals()">&times;</button>
+        </div>
+        <div class="series-modal-meta">
+          <span>اختر الموسم لمشاهدة حلقاته</span>
+          <span id="series-total-episode-count"></span>
+        </div>
+        <div id="series-season-tabs" class="series-season-tabs" role="tablist" aria-label="مواسم المسلسل"></div>
+        <div class="series-episodes-section-heading">
+          <span id="series-selected-season-title">الموسم 1</span>
+          <span id="series-season-episode-count"></span>
+        </div>
+        <div id="series-episodes-list" class="series-episodes-grid" role="list" aria-label="حلقات الموسم المحدد"></div>
         <div class="modal-footer"><button class="action-btn focusable" onclick="closeAllModals()">إغلاق</button></div>
       </div>
     </div>
