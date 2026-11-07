@@ -26,6 +26,11 @@ import android.graphics.Typeface
 import android.util.TypedValue
 import java.io.File
 import java.io.FileOutputStream
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
+import java.util.zip.GZIPInputStream
+import java.util.zip.ZipInputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.Executors
@@ -748,16 +753,21 @@ class MainActivity : ComponentActivity() {
                     connection.readTimeout = 25000
                     connection.instanceFollowRedirects = true
                     connection.setRequestProperty("User-Agent", "SONIX-TV/1.0")
-                    val bytes = try {
+                    val rawBytes = try {
                         require(connection.responseCode in 200..299) { "HTTP ${connection.responseCode}" }
-                        connection.inputStream.use { it.readBytes() }
+                        connection.setRequestProperty("Accept", "text/plain,text/vtt,application/x-subrip,application/octet-stream,*/*")
+                        connection.inputStream.use { readBoundedBytes(it, 20 * 1024 * 1024) }
                     } finally { connection.disconnect() }
-                    require(bytes.isNotEmpty() && bytes.size <= 20 * 1024 * 1024) { "ملف الترجمة فارغ أو أكبر من 20MB" }
-                    val ext = (uri.lastPathSegment ?: "").substringAfterLast('.', "srt").lowercase()
-                    require(ext in setOf("srt", "vtt", "ssa", "ass", "ttml", "xml")) { "صيغة الترجمة غير مدعومة" }
+                    require(rawBytes.isNotEmpty()) { "ملف الترجمة فارغ" }
+                    val preferredExt = uri.lastPathSegment.orEmpty().substringAfterLast('.', "").lowercase()
+                    val decoded = decodeSubtitlePayload(rawBytes, preferredExt)
+                    require(decoded.first.isNotEmpty() && decoded.first.size <= 20 * 1024 * 1024) {
+                        "ملف الترجمة فارغ أو أكبر من 20MB"
+                    }
+                    val ext = decoded.second
                     val folder = File(cacheDir, "subtitles").apply { mkdirs() }
                     File(folder, "online_${System.currentTimeMillis()}.$ext").also { file ->
-                        FileOutputStream(file).use { it.write(bytes) }
+                        FileOutputStream(file).use { it.write(decoded.first) }
                         downloaded = file
                     }
                     JSONObject().put("success", true).toString()
@@ -1226,6 +1236,71 @@ class MainActivity : ComponentActivity() {
         lastSubtitlePositionMs = 0L
         lastRenderedSubtitleText = null
         nativePlayerView?.subtitleView?.setCues(emptyList())
+    }
+
+    private fun readBoundedBytes(input: InputStream, maxBytes: Int): ByteArray {
+        val output = ByteArrayOutputStream()
+        val buffer = ByteArray(8192)
+        var total = 0
+        while (true) {
+            val count = input.read(buffer)
+            if (count < 0) break
+            total += count
+            require(total <= maxBytes) { "ملف الترجمة أكبر من الحد المسموح" }
+            output.write(buffer, 0, count)
+        }
+        return output.toByteArray()
+    }
+
+    /**
+     * OpenSubtitles/Stremio subtitle URLs may return a plain subtitle, a gzip stream,
+     * or a ZIP archive. Decode the payload before handing it to the subtitle parser.
+     */
+    private fun decodeSubtitlePayload(raw: ByteArray, urlExtension: String): Pair<ByteArray, String> {
+        val supported = setOf("srt", "vtt", "ssa", "ass", "ttml", "xml")
+        val isZip = raw.size >= 4 && raw[0] == 0x50.toByte() && raw[1] == 0x4b.toByte()
+        val isGzip = raw.size >= 2 && raw[0] == 0x1f.toByte() && raw[1] == 0x8b.toByte()
+
+        val decoded = when {
+            isZip -> {
+                var selected: Pair<ByteArray, String>? = null
+                ZipInputStream(ByteArrayInputStream(raw)).use { zip ->
+                    while (selected == null) {
+                        val entry = zip.nextEntry ?: break
+                        if (!entry.isDirectory) {
+                            val bytes = readBoundedBytes(zip, 20 * 1024 * 1024)
+                            val entryExt = entry.name.substringAfterLast('.', "").lowercase()
+                            if (bytes.isNotEmpty()) {
+                                val ext = if (entryExt in supported) entryExt else inferSubtitleExtension(bytes, "")
+                                if (selected == null || entryExt in supported) selected = bytes to ext
+                            }
+                        }
+                        zip.closeEntry()
+                    }
+                }
+                selected ?: throw IllegalArgumentException("ملف ZIP لا يحتوي على ترجمة مدعومة")
+            }
+            isGzip -> {
+                val bytes = GZIPInputStream(ByteArrayInputStream(raw)).use {
+                    readBoundedBytes(it, 20 * 1024 * 1024)
+                }
+                bytes to inferSubtitleExtension(bytes, urlExtension)
+            }
+            else -> raw to inferSubtitleExtension(raw, urlExtension)
+        }
+        return decoded
+    }
+
+    private fun inferSubtitleExtension(bytes: ByteArray, preferred: String): String {
+        val text = String(bytes, Charsets.UTF_8).removePrefix("\uFEFF").trimStart()
+        if (text.startsWith("WEBVTT", ignoreCase = true)) return "vtt"
+        if (text.contains("Dialogue:", ignoreCase = true) &&
+            (text.contains("[Events]", ignoreCase = true) || preferred == "ass" || preferred == "ssa")) {
+            return if (preferred == "ssa") "ssa" else "ass"
+        }
+        if (text.startsWith("<?xml", ignoreCase = true) || text.startsWith("<tt", ignoreCase = true)) return "ttml"
+        if (preferred in setOf("srt", "vtt", "ssa", "ass", "ttml", "xml")) return preferred
+        return "srt"
     }
 
     private fun parseSubtitleFile(file: File): List<TimedSubtitleCue> {
