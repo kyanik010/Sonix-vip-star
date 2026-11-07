@@ -1418,6 +1418,7 @@
       }
 
       handleBackAction() {
+        if (closeRemoteMessage()) return;
         if (cancelActiveCatalogSync()) return;
         // The login screen has no previous in-app page; Back follows Android's
         // normal behavior and closes the app instead of silently doing nothing.
@@ -1906,6 +1907,51 @@
       }, 2500);
     }
 
+    // Remote messages use a centered glass dialog instead of the native browser alert.
+    const remoteMessageQueue = [];
+    let remoteMessageVisible = false;
+    function enqueueRemoteMessage(title, body) {
+      remoteMessageQueue.push({ title, body });
+      if (!remoteMessageVisible) showNextRemoteMessage();
+    }
+    function showNextRemoteMessage() {
+      const overlay = document.getElementById('sonix-remote-message');
+      const titleElement = document.getElementById('sonix-remote-message-title');
+      const bodyElement = document.getElementById('sonix-remote-message-body');
+      if (!overlay || !titleElement || !bodyElement || !remoteMessageQueue.length) {
+        remoteMessageVisible = false;
+        return;
+      }
+      const message = remoteMessageQueue.shift();
+      titleElement.textContent = message.title || 'رسالة من الإدارة';
+      titleElement.hidden = !message.title;
+      bodyElement.textContent = message.body || '';
+      bodyElement.hidden = !message.body;
+      overlay.classList.add('visible');
+      overlay.setAttribute('aria-hidden', 'false');
+      remoteMessageVisible = true;
+      const closeButton = document.getElementById('sonix-remote-message-close');
+      if (closeButton) {
+        closeButton.focus();
+        if (window.remoteNavigator) window.remoteNavigator.focusElement(closeButton);
+      }
+    }
+    function closeRemoteMessage() {
+      const overlay = document.getElementById('sonix-remote-message');
+      if (!overlay || !remoteMessageVisible) return false;
+      overlay.classList.remove('visible');
+      overlay.setAttribute('aria-hidden', 'true');
+      remoteMessageVisible = false;
+      if (remoteMessageQueue.length) {
+        window.setTimeout(showNextRemoteMessage, 180);
+      }
+      return true;
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      const closeButton = document.getElementById('sonix-remote-message-close');
+      if (closeButton) closeButton.addEventListener('click', closeRemoteMessage);
+    });
+
     function applySonixRemoteTheme(theme) {
       if (!theme || !theme.palette) return;
       const palette = theme.palette;
@@ -1990,9 +2036,10 @@
       setLoginMessage('');
       applySonixRemoteTheme(payload.theme);
       (payload.messages || []).forEach(message => {
-        const text = (message.title ? message.title + '\\n\\n' : '') + (message.body || '');
-        if (text.trim()) {
-          try { window.alert(text); } catch (_) { showToast(message.title || 'رسالة جديدة'); }
+        const title = String(message && message.title || '').trim();
+        const body = String(message && message.body || '').trim();
+        if (title || body) {
+          enqueueRemoteMessage(title, body);
           if (window.SonixControlBridge && window.SonixControlBridge.acknowledge) {
             window.SonixControlBridge.acknowledge(String(message.id));
           }
